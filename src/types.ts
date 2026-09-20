@@ -179,7 +179,17 @@ export type OrderStatus =
   | 'Delivered'
   | 'Cancelled';
 
-export type PaymentMethod = 'Razorpay' | 'Cash on Delivery' | 'UPI' | 'Bank / UPI Transfer';
+export type PaymentMethod =
+  | 'Razorpay'
+  | 'Cash on Delivery'
+  | 'UPI'
+  | 'Bank / UPI Transfer'
+  | 'Google Pay'
+  | 'PhonePe'
+  | 'Paytm'
+  | 'CRED'
+  | 'Credit/Debit Card'
+  | 'Net Banking';
 export type PaymentStatus =
   | 'Pending'
   | 'Paid'

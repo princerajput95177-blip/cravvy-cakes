@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { useBakery } from '../../context/BakeryContext';
-import { RazorpayModal } from '../modals/RazorpayModal';
-import { BankUpiPaymentModal } from './BankUpiPaymentModal';
+import { ZomatoPaymentGateway } from './ZomatoPaymentGateway';
+import { PaymentMethod } from '../../types';
 import {
   MapPin,
   Calendar,
-  Clock,
   CreditCard,
   Banknote,
   Sparkles,
@@ -13,9 +12,11 @@ import {
   X,
   Plus,
   Check,
-  AlertCircle,
-  QrCode,
+  Smartphone,
   Building2,
+  Lock,
+  ChevronRight,
+  Zap,
 } from 'lucide-react';
 
 interface CheckoutModalProps {
@@ -44,11 +45,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
   const [deliveryDate, setDeliveryDate] = useState('Today');
   const [deliveryTimeSlot, setDeliveryTimeSlot] = useState('Standard (within 45 mins)');
-  const [paymentMethod, setPaymentMethod] = useState<'Razorpay' | 'Cash on Delivery' | 'Bank / UPI Transfer'>('Bank / UPI Transfer');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Google Pay');
+  const [upiIdInput, setUpiIdInput] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
-  const [showRazorpay, setShowRazorpay] = useState(false);
-  const [showBankUpi, setShowBankUpi] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
 
   // Quick Address modal toggle
   const [showAddAddress, setShowAddAddress] = useState(false);
@@ -57,49 +58,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [newAddrArea, setNewAddrArea] = useState('');
   const [newAddrPincode, setNewAddrPincode] = useState('144003');
 
-  const handleCreateOrder = async (paymentId?: string) => {
+  const handleCreateOrder = async (payInfo?: { paymentId: string; method: PaymentMethod }) => {
     try {
       setIsSubmitting(true);
-      const newOrder = await placeOrder({
-        deliveryDate,
-        deliveryTimeSlot,
-        paymentMethod,
-        specialInstructions: specialInstructions.trim() || undefined,
-        paymentId,
-      });
-      setIsSubmitting(false);
-      setShowRazorpay(false);
-      onOrderSuccess(newOrder.id);
-    } catch (err: any) {
-      setIsSubmitting(false);
-      showToast(err.message || 'Error creating order');
-    }
-  };
+      const chosenMethod = payInfo?.method || paymentMethod;
+      const isOnlinePaid = chosenMethod !== 'Cash on Delivery';
 
-  const handleBankUpiSubmit = async ({
-    utrTransactionId,
-    paymentScreenshot,
-  }: {
-    utrTransactionId: string;
-    paymentScreenshot?: string;
-  }) => {
-    try {
-      setIsSubmitting(true);
       const newOrder = await placeOrder({
         deliveryDate,
         deliveryTimeSlot,
-        paymentMethod: 'Bank / UPI Transfer',
+        paymentMethod: chosenMethod,
+        paymentStatus: isOnlinePaid ? 'Paid' : 'Pending',
+        paymentId: payInfo?.paymentId || (isOnlinePaid ? `PAY_${Date.now()}` : undefined),
         specialInstructions: specialInstructions.trim() || undefined,
-        utrTransactionId,
-        paymentScreenshot,
-        paymentStatus: 'Pending Verification',
       });
+
       setIsSubmitting(false);
-      setShowBankUpi(false);
-      showToast('Payment details submitted successfully. Verification pending.');
+      setShowPaymentGateway(false);
       onOrderSuccess(newOrder.id);
     } catch (err: any) {
       setIsSubmitting(false);
+      setShowPaymentGateway(false);
       showToast(err.message || 'Error creating order');
     }
   };
@@ -111,38 +90,42 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
       return;
     }
 
-    if (paymentMethod === 'Razorpay') {
-      setShowRazorpay(true);
-    } else if (paymentMethod === 'Bank / UPI Transfer') {
-      setShowBankUpi(true);
-    } else {
+    if (paymentMethod === 'Cash on Delivery') {
       handleCreateOrder();
+    } else {
+      // Launch Zomato-style direct payment gateway overlay
+      setShowPaymentGateway(true);
     }
   };
 
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-fadeIn"
         id="checkout-modal-overlay"
       >
         <div
-          className="bg-white dark:bg-[#30221D] rounded-3xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl border border-[#E8DACD] dark:border-[#46332B] animate-scaleUp"
+          className="bg-white dark:bg-[#2A1D18] rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-[#E8DACD] dark:border-[#46332B] animate-scaleUp"
           id="checkout-modal"
         >
-          {/* Header */}
-          <div className="p-4 sm:p-5 border-b border-[#E8DACD] dark:border-[#46332B] flex items-center justify-between bg-white dark:bg-[#30221D]">
+          {/* Header - Zomato Style */}
+          <div className="p-4 sm:p-5 border-b border-[#E8DACD] dark:border-[#46332B] flex items-center justify-between bg-white dark:bg-[#2A1D18]">
             <div>
-              <h2 className="text-lg font-black text-[#2B1A15] dark:text-[#FAF4EE]">
-                Review & Finalize Order
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-black text-[#2B1A15] dark:text-[#FAF4EE]">
+                  Review & Place Order
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                  <Zap className="w-2.5 h-2.5" /> 45m Express
+                </span>
+              </div>
               <p className="text-xs text-[#7A6A63] dark:text-[#B8A8A1]">
-                Freshly handcrafted & dispatched from Cravvy Cakes
+                Cravvy Cakes Bakery • Jalandhar City
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-[#FFF8F0] dark:hover:bg-[#261B16] text-[#7A6A63] transition"
+              className="p-1.5 rounded-full hover:bg-[#FFF8F0] dark:hover:bg-[#382620] text-[#7A6A63] transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -150,10 +133,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
           {/* Form / Scroll Content */}
           <form onSubmit={handleCheckoutSubmit} className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
-            {/* Delivery Address Selector */}
+            {/* 1. Delivery Address Selector */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-black uppercase tracking-wider text-[#3B2118] dark:text-[#FAF4EE] flex items-center gap-1">
+                <label className="text-xs font-black uppercase tracking-wider text-[#3B2118] dark:text-[#FAF4EE] flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-[#8B2F3C] dark:text-[#C9A227]" />
                   <span>1. Delivery Address</span>
                 </label>
@@ -163,25 +146,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   className="text-xs font-bold text-[#8B2F3C] dark:text-[#C9A227] hover:underline flex items-center gap-0.5"
                 >
                   <Plus className="w-3 h-3 stroke-[2.5]" />
-                  <span>{showAddAddress ? 'Cancel' : 'New Address'}</span>
+                  <span>{showAddAddress ? 'Cancel' : 'Add New'}</span>
                 </button>
               </div>
 
               {showAddAddress ? (
-                <div className="p-3.5 rounded-2xl bg-[#FFF8F0] dark:bg-[#261B16] border border-[#E8DACD] dark:border-[#46332B] space-y-2 text-xs">
+                <div className="p-3.5 rounded-2xl bg-[#FFF8F0] dark:bg-[#33231D] border border-[#E8DACD] dark:border-[#46332B] space-y-2 text-xs">
                   <input
                     type="text"
                     placeholder="House / Flat / Block No."
                     value={newAddrHouse}
                     onChange={(e) => setNewAddrHouse(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#2B1A15] dark:text-[#FAF4EE]"
+                    className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE]"
                   />
                   <input
                     type="text"
                     placeholder="Street / Colony / Landmark"
                     value={newAddrStreet}
                     onChange={(e) => setNewAddrStreet(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#2B1A15] dark:text-[#FAF4EE]"
+                    className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE]"
                   />
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-[#7A6A63] dark:text-[#B8A8A1]">Quick Select Jalandhar Area:</label>
@@ -194,7 +177,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                           className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition ${
                             newAddrArea === areaName
                               ? 'bg-[#8B2F3C] text-white border-[#8B2F3C]'
-                              : 'bg-white dark:bg-[#30221D] text-[#7A6A63] dark:text-[#B8A8A1] border-[#E8DACD] dark:border-[#46332B]'
+                              : 'bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1] border-[#E8DACD] dark:border-[#46332B]'
                           }`}
                         >
                           {areaName}
@@ -208,19 +191,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       placeholder="Area (e.g. Model Town)"
                       value={newAddrArea}
                       onChange={(e) => setNewAddrArea(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#2B1A15] dark:text-[#FAF4EE]"
+                      className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE]"
                     />
                     <input
                       type="text"
                       placeholder="Pincode (e.g. 144003)"
                       value={newAddrPincode}
                       onChange={(e) => setNewAddrPincode(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#2B1A15] dark:text-[#FAF4EE]"
+                      className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE]"
                     />
-                  </div>
-                  <div className="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-[#3B2118]/40 border border-[#C9A227]/30 text-[11px] text-[#2B1A15] dark:text-[#FAF4EE] flex items-center justify-between font-bold">
-                    <span>City: Jalandhar, Punjab</span>
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold">✓ Service Area</span>
                   </div>
                   <button
                     type="button"
@@ -241,11 +220,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       };
                       setSelectedAddress({ ...newAddress, id: 'addr-' + Date.now() });
                       setShowAddAddress(false);
-                      showToast('Jalandhar address saved & selected!');
+                      showToast('Delivery address saved & selected!');
                     }}
-                    className="w-full py-2.5 rounded-xl bg-[#8B2F3C] hover:bg-[#742531] text-white font-bold text-xs shadow-xs"
+                    className="w-full py-2.5 rounded-xl bg-[#8B2F3C] hover:bg-[#742531] text-white font-bold text-xs shadow-xs cursor-pointer"
                   >
-                    Save & Use This Address
+                    Save & Select This Address
                   </button>
                 </div>
               ) : (
@@ -256,8 +235,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       onClick={() => setSelectedAddress(addr)}
                       className={`p-3 rounded-2xl border cursor-pointer transition flex items-start justify-between ${
                         selectedAddress?.id === addr.id
-                          ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#261B16] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
-                          : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#7A6A63] dark:text-[#B8A8A1]'
+                          ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#33231D] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
+                          : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1]'
                       }`}
                     >
                       <div className="text-xs space-y-0.5">
@@ -267,10 +246,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                             {addr.type}
                           </span>
                         </div>
-                        <p className="text-[#7A6A63] dark:text-[#B8A8A1] line-clamp-2">
-                          {addr.houseFlat}, {addr.street}, {addr.area}, {addr.city} - {addr.pincode}
+                        <p className="text-[#7A6A63] dark:text-[#B8A8A1] line-clamp-1">
+                          {addr.houseFlat}, {addr.street}, {addr.area}, Jalandhar - {addr.pincode}
                         </p>
-                        <p className="text-[#7A6A63]/80 text-[10px]">Phone: {addr.phone}</p>
                       </div>
                       {selectedAddress?.id === addr.id && (
                         <div className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center flex-shrink-0">
@@ -283,192 +261,254 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               )}
             </div>
 
-            {/* Delivery Date & Time Slot */}
+            {/* 2. Delivery Date & Time Slot */}
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-wider text-[#3B2118] dark:text-[#FAF4EE] flex items-center gap-1">
+              <label className="text-xs font-black uppercase tracking-wider text-[#3B2118] dark:text-[#FAF4EE] flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#8B2F3C] dark:text-[#C9A227]" />
-                <span>2. Delivery Date & Time Slot</span>
+                <span>2. Delivery Slot</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <select
-                    value={deliveryDate}
-                    onChange={(e) => setDeliveryDate(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-xs font-bold text-[#2B1A15] dark:text-[#FAF4EE] focus:ring-2 focus:ring-[#8B2F3C] focus:outline-none"
-                  >
-                    <option value="Today">Today (Fast Delivery)</option>
-                    <option value="Tomorrow">Tomorrow</option>
-                    <option value="Day After Tomorrow">Day After Tomorrow</option>
-                    <option value="Weekend Special">Upcoming Weekend</option>
-                  </select>
-                </div>
+                <select
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-xs font-bold text-[#2B1A15] dark:text-[#FAF4EE] focus:ring-2 focus:ring-[#8B2F3C] focus:outline-none"
+                >
+                  <option value="Today">Today (Fast Delivery)</option>
+                  <option value="Tomorrow">Tomorrow</option>
+                  <option value="Day After Tomorrow">Day After Tomorrow</option>
+                </select>
 
-                <div>
-                  <select
-                    value={deliveryTimeSlot}
-                    onChange={(e) => setDeliveryTimeSlot(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-xs font-bold text-[#2B1A15] dark:text-[#FAF4EE] focus:ring-2 focus:ring-[#8B2F3C] focus:outline-none"
-                  >
-                    <option value="Standard (within 45 mins)">⚡ Express (~45 mins)</option>
-                    <option value="6:00 PM - 8:00 PM">🌆 Evening (6 PM - 8 PM)</option>
-                    <option value="8:00 PM - 10:00 PM">🌙 Night (8 PM - 10 PM)</option>
-                    <option value="11:45 PM - 12:15 AM">🎂 Midnight 12 AM Slot</option>
-                  </select>
-                </div>
+                <select
+                  value={deliveryTimeSlot}
+                  onChange={(e) => setDeliveryTimeSlot(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-xs font-bold text-[#2B1A15] dark:text-[#FAF4EE] focus:ring-2 focus:ring-[#8B2F3C] focus:outline-none"
+                >
+                  <option value="Standard (within 45 mins)">⚡ Express (~45 mins)</option>
+                  <option value="6:00 PM - 8:00 PM">🌆 Evening (6 PM - 8 PM)</option>
+                  <option value="8:00 PM - 10:00 PM">🌙 Night (8 PM - 10 PM)</option>
+                  <option value="11:45 PM - 12:15 AM">🎂 Midnight 12 AM Slot</option>
+                </select>
               </div>
             </div>
 
-            {/* Payment Method */}
-            <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-wider text-[#3B2118] dark:text-[#FAF4EE] flex items-center justify-between">
-                <span className="flex items-center gap-1">
+            {/* 3. Zomato-Style Direct Payment Selector */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-black uppercase tracking-wider text-[#3B2118] dark:text-[#FAF4EE] flex items-center gap-1.5">
                   <CreditCard className="w-3.5 h-3.5 text-[#8B2F3C] dark:text-[#C9A227]" />
-                  <span>3. Select Payment Method</span>
+                  <span>3. Payment Options</span>
+                </label>
+                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-black flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" /> 100% Automatic & Instant
                 </span>
-                <span className="text-[10px] text-[#8B2F3C] dark:text-[#C9A227] font-black">
-                  3 Methods Available
-                </span>
-              </label>
+              </div>
 
-              <div className="space-y-2">
-                {/* 1. Bank / UPI Transfer */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('Bank / UPI Transfer')}
-                  className={`w-full p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
-                    paymentMethod === 'Bank / UPI Transfer'
-                      ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#261B16] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
-                      : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-[#C9A227]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#8B2F3C]/10 text-[#8B2F3C] dark:text-[#C9A227] flex items-center justify-center flex-shrink-0">
-                      <QrCode className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">Pay via Bank / UPI</span>
-                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-[#C9A227] text-white uppercase tracking-wider">
-                          QR & Direct IMPS
-                        </span>
+              {/* Group A: UPI Instant 1-Click Apps */}
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-black uppercase tracking-wider text-[#7A6A63] dark:text-[#B8A8A1] px-1">
+                  UPI Apps (Instant • No screenshot needed)
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Google Pay */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('Google Pay')}
+                    className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      paymentMethod === 'Google Pay'
+                        ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#33231D] text-[#2B1A15] dark:text-[#FAF4EE] ring-2 ring-[#8B2F3C]/40 shadow-xs'
+                        : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-[#8B2F3C]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-xl bg-white border border-[#E8DACD] flex items-center justify-center font-black text-xs text-[#4285F4] shadow-2xs">
+                        G
                       </div>
-                      <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1] mt-0.5">
-                        UPI QR Code (PhonePe, GPay, Paytm) or Kotak Bank Transfer
-                      </p>
+                      <div>
+                        <div className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">Google Pay</div>
+                        <div className="text-[9px] text-emerald-600 font-bold">⚡ 1-Click Pay</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {paymentMethod === 'Bank / UPI Transfer' && (
-                      <div className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    {paymentMethod === 'Google Pay' && (
+                      <div className="w-4 h-4 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
-                  </div>
-                </button>
+                  </button>
 
-                {/* 2. Razorpay Online */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('Razorpay')}
-                  className={`w-full p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
-                    paymentMethod === 'Razorpay'
-                      ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#261B16] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
-                      : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-[#C9A227]'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#8B2F3C]/10 text-[#8B2F3C] dark:text-[#C9A227] flex items-center justify-center flex-shrink-0">
-                      <CreditCard className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">Razorpay / Online Payment</span>
-                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#8B2F3C]/10 text-[#8B2F3C] dark:text-[#C9A227]">
-                          Instant
-                        </span>
+                  {/* PhonePe */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('PhonePe')}
+                    className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      paymentMethod === 'PhonePe'
+                        ? 'border-[#5f259f] bg-[#f8f2fd] dark:bg-[#29173b] text-[#2B1A15] dark:text-[#FAF4EE] ring-2 ring-[#5f259f]/40 shadow-xs'
+                        : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-[#5f259f]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-xl bg-[#5f259f] text-white flex items-center justify-center font-black text-xs shadow-2xs">
+                        पे
                       </div>
-                      <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1] mt-0.5">
-                        Debit/Credit Cards, NetBanking, Wallets
-                      </p>
+                      <div>
+                        <div className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">PhonePe</div>
+                        <div className="text-[9px] text-[#5f259f] dark:text-[#b88ee8] font-bold">⚡ Fastest</div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {paymentMethod === 'Razorpay' && (
-                      <div className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                    {paymentMethod === 'PhonePe' && (
+                      <div className="w-4 h-4 rounded-full bg-[#5f259f] text-white flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     )}
-                  </div>
-                </button>
+                  </button>
 
-                {/* 3. Cash on Delivery */}
+                  {/* Paytm */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('Paytm')}
+                    className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      paymentMethod === 'Paytm'
+                        ? 'border-[#002e6e] bg-[#f0f5fc] dark:bg-[#152336] text-[#2B1A15] dark:text-[#FAF4EE] ring-2 ring-[#002e6e]/40 shadow-xs'
+                        : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-[#002e6e]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-xl bg-[#00baf2] text-white flex items-center justify-center font-black text-[10px] shadow-2xs">
+                        Pay
+                      </div>
+                      <div>
+                        <div className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">Paytm UPI</div>
+                        <div className="text-[9px] text-[#00baf2] font-bold">Instant</div>
+                      </div>
+                    </div>
+                    {paymentMethod === 'Paytm' && (
+                      <div className="w-4 h-4 rounded-full bg-[#002e6e] text-white flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* CRED Pay */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('CRED')}
+                    className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      paymentMethod === 'CRED'
+                        ? 'border-black dark:border-white bg-neutral-100 dark:bg-neutral-800 text-[#2B1A15] dark:text-[#FAF4EE] ring-2 ring-black/40 dark:ring-white/40 shadow-xs'
+                        : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-black'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-xl bg-black text-white flex items-center justify-center font-black text-xs shadow-2xs">
+                        C
+                      </div>
+                      <div>
+                        <div className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">CRED UPI</div>
+                        <div className="text-[9px] text-[#7A6A63] font-bold">Cashback</div>
+                      </div>
+                    </div>
+                    {paymentMethod === 'CRED' && (
+                      <div className="w-4 h-4 rounded-full bg-black dark:bg-white text-white dark:text-black flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Group B: Credit/Debit Cards & Net Banking */}
+              <div className="space-y-1.5 pt-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-[#7A6A63] dark:text-[#B8A8A1] px-1">
+                  Cards & Net Banking
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Cards */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('Credit/Debit Card')}
+                    className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      paymentMethod === 'Credit/Debit Card'
+                        ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#33231D] text-[#2B1A15] dark:text-[#FAF4EE] ring-2 ring-[#8B2F3C]/40 shadow-xs'
+                        : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <CreditCard className="w-5 h-5 text-[#8B2F3C] dark:text-[#C9A227]" />
+                      <div>
+                        <div className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">Debit / Credit</div>
+                        <div className="text-[9px] text-[#7A6A63]">Visa, RuPay</div>
+                      </div>
+                    </div>
+                    {paymentMethod === 'Credit/Debit Card' && (
+                      <div className="w-4 h-4 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* NetBanking */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('Net Banking')}
+                    className={`p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                      paymentMethod === 'Net Banking'
+                        ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#33231D] text-[#2B1A15] dark:text-[#FAF4EE] ring-2 ring-[#8B2F3C]/40 shadow-xs'
+                        : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="w-5 h-5 text-[#8B2F3C] dark:text-[#C9A227]" />
+                      <div>
+                        <div className="font-extrabold text-xs text-[#2B1A15] dark:text-[#FAF4EE]">NetBanking</div>
+                        <div className="text-[9px] text-[#7A6A63]">HDFC, SBI, ICICI</div>
+                      </div>
+                    </div>
+                    {paymentMethod === 'Net Banking' && (
+                      <div className="w-4 h-4 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Group C: Cash on Delivery */}
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('Cash on Delivery')}
-                  className={`w-full p-3 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
+                  className={`w-full p-3.5 rounded-2xl border text-left transition flex items-center justify-between cursor-pointer ${
                     paymentMethod === 'Cash on Delivery'
-                      ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#261B16] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
-                      : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-[#7A6A63] dark:text-[#B8A8A1] hover:border-[#C9A227]'
+                      ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 ring-2 ring-emerald-600/40 shadow-xs'
+                      : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center flex-shrink-0">
                       <Banknote className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-extrabold text-xs block text-[#2B1A15] dark:text-[#FAF4EE]">Cash on Delivery (COD)</span>
-                        <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-600/30">
-                          Zero Advance
+                        <span className="font-black text-xs text-[#2B1A15] dark:text-[#FAF4EE]">
+                          Cash on Delivery (COD)
+                        </span>
+                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                          Pay at Doorstep
                         </span>
                       </div>
                       <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1] mt-0.5">
-                        Pay in cash or scan delivery rider's UPI QR upon doorstep arrival
+                        Pay cash or scan delivery rider's UPI QR upon arrival
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {paymentMethod === 'Cash on Delivery' && (
-                      <div className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                      </div>
-                    )}
-                  </div>
+                  {paymentMethod === 'Cash on Delivery' && (
+                    <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                  )}
                 </button>
               </div>
-
-              {/* Cash on Delivery Details Card */}
-              {paymentMethod === 'Cash on Delivery' && (
-                <div className="mt-3 p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-xs space-y-2 animate-fadeIn">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 font-bold">
-                      <Banknote className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span>Doorstep Payment Guarantee</span>
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-white dark:bg-[#30221D] text-emerald-900 dark:text-emerald-200 border border-emerald-200">
-                      Pay on Delivery: ₹{cartTotal}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px] text-emerald-950 dark:text-emerald-300">
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">✓</span>
-                      <span>No advance payment or card required</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Cash or Rider UPI QR accepted</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Inspect packaging before handover</span>
-                    </div>
-                    <div className="flex items-start gap-1.5">
-                      <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Free delivery tracking in real-time</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Special delivery instructions */}
@@ -481,12 +521,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 placeholder="e.g. Ring doorbell twice, add 2 celebration candles..."
                 value={specialInstructions}
                 onChange={(e) => setSpecialInstructions(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#30221D] text-xs text-[#2B1A15] dark:text-[#FAF4EE] focus:ring-2 focus:ring-[#8B2F3C] focus:outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-xs text-[#2B1A15] dark:text-[#FAF4EE] focus:ring-2 focus:ring-[#8B2F3C] focus:outline-none"
               />
             </div>
 
             {/* Order Items Preview */}
-            <div className="p-3.5 rounded-2xl bg-[#FFF8F0] dark:bg-[#261B16] border border-[#E8DACD] dark:border-[#46332B] space-y-1.5 text-xs">
+            <div className="p-3.5 rounded-2xl bg-[#FFF8F0] dark:bg-[#33231D] border border-[#E8DACD] dark:border-[#46332B] space-y-1.5 text-xs">
               <div className="flex justify-between font-semibold text-[#7A6A63] dark:text-[#B8A8A1]">
                 <span>Items Subtotal ({cart.length} items):</span>
                 <span className="font-bold text-[#2B1A15] dark:text-[#FAF4EE]">₹{cartSubtotal}</span>
@@ -505,13 +545,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span>GST (5%):</span>
                 <span>₹{cartTax}</span>
               </div>
-              <div className="flex justify-between text-sm font-black text-[#2B1A15] dark:text-[#FAF4EE] pt-1.5 border-t border-[#E8DACD] dark:border-[#46332B]">
+              <div className="flex justify-between text-base font-black text-[#2B1A15] dark:text-[#FAF4EE] pt-1.5 border-t border-[#E8DACD] dark:border-[#46332B]">
                 <span>Total Amount:</span>
                 <span className="text-[#3B2118] dark:text-[#FAF4EE]">₹{cartTotal}</span>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button - Zomato Style Action */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -520,18 +560,17 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {isSubmitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>Processing...</span>
+                  <span>Confirming Order...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-[#C9A227]" />
                   <span>
-                    {paymentMethod === 'Bank / UPI Transfer'
-                      ? `Proceed to Bank / UPI Payment (₹${cartTotal})`
-                      : paymentMethod === 'Razorpay'
-                      ? `Proceed to Razorpay (₹${cartTotal})`
-                      : `Place Cash on Delivery Order • ₹${cartTotal}`}
+                    {paymentMethod === 'Cash on Delivery'
+                      ? `Place Cash on Delivery Order • ₹${cartTotal}`
+                      : `Pay ₹${cartTotal} via ${paymentMethod}`}
                   </span>
+                  <ChevronRight className="w-4 h-4" />
                 </>
               )}
             </button>
@@ -539,28 +578,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         </div>
       </div>
 
-      {/* Razorpay Gateway Modal if Online Payment */}
-      {showRazorpay && (
-        <RazorpayModal
+      {/* Modern Instant Payment Gateway Modal */}
+      {showPaymentGateway && (
+        <ZomatoPaymentGateway
+          isOpen={showPaymentGateway}
           amount={cartTotal}
-          orderNumber={`KB-ORD-${Math.floor(1000 + Math.random() * 9000)}`}
-          customerName={user.name}
-          customerPhone={user.phone}
-          onSuccess={(payId) => handleCreateOrder(payId)}
-          onCancel={() => setShowRazorpay(false)}
-        />
-      )}
-
-      {/* Bank / UPI Transfer Modal */}
-      {showBankUpi && (
-        <BankUpiPaymentModal
-          amount={cartTotal}
-          customerName={user.name}
-          orderNumber={`CC-${Math.floor(1000 + Math.random() * 9000)}`}
-          isOpen={showBankUpi}
-          onClose={() => setShowBankUpi(false)}
-          onSubmitPayment={handleBankUpiSubmit}
-          isSubmitting={isSubmitting}
+          paymentMethod={paymentMethod}
+          onClose={() => setShowPaymentGateway(false)}
+          onSuccess={(payInfo) => handleCreateOrder(payInfo)}
         />
       )}
     </>

@@ -353,6 +353,50 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({
         </div>
       </div>
 
+      {/* Instant Online Payment Card (Google Pay, PhonePe, Paytm, CRED, Cards, NetBanking) */}
+      {order.paymentMethod !== 'Bank / UPI Transfer' && order.paymentMethod !== 'Cash on Delivery' && (
+        <div className="p-4 rounded-3xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-200 text-xs space-y-3 shadow-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="font-black text-sm block text-emerald-950 dark:text-emerald-100">
+                  Payment Verified & Completed
+                </span>
+                <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block font-semibold">
+                  Paid via {order.paymentMethod} • Auto-Verified by Gateway
+                </span>
+              </div>
+            </div>
+
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200">
+              Paid ✓
+            </span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/80 dark:bg-neutral-900/80 border border-emerald-200/70 dark:border-emerald-800/70 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-neutral-600 dark:text-neutral-400">Total Paid:</span>
+              <span className="font-black text-emerald-700 dark:text-emerald-400 text-sm">₹{order.finalTotal}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-neutral-600 dark:text-neutral-400">Transaction ID:</span>
+              <span className="font-mono font-bold text-neutral-900 dark:text-white select-all text-[11px]">
+                {order.paymentId || `TXN_${order.orderNumber}`}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-neutral-600 dark:text-neutral-400">Delivery Status:</span>
+              <span className="text-emerald-700 dark:text-emerald-400 font-extrabold text-[11px]">
+                ⚡ Kitchen Baking in Progress
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bank / UPI Payment Verification Card */}
       {order.paymentMethod === 'Bank / UPI Transfer' && (
         <div
