@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="50%" stop-color="#ffe4e6"/>
+      <stop offset="100%" stop-color="#fecdd3"/>
+    </linearGradient>
+    <linearGradient id="cakeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+    <linearGradient id="creamGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fff5f5"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#881337" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <!-- Background Squircle with Safe Zone -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+
+  <!-- Outer Ring Accent -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#f43f5e" stroke-width="4" stroke-dasharray="12 12" opacity="0.3"/>
+
+  <!-- Cake Base Shadow & Layer -->
+  <g filter="url(#shadow)">
+    <!-- Bottom Cake Layer -->
+    <path d="M120 310 C120 280, 392 280, 392 310 L392 370 C392 400, 120 400, 120 370 Z" fill="#be123c"/>
+    <path d="M120 310 C120 285, 392 285, 392 310 C392 335, 120 335, 120 310 Z" fill="#fda4af"/>
+
+    <!-- Middle Frosting Drips -->
+    <path d="M120 310 C140 330, 160 320, 180 335 C200 320, 220 330, 240 320 C260 335, 280 320, 300 335 C320 320, 340 330, 360 320 C380 330, 392 315, 392 310 C392 290, 120 290, 120 310 Z" fill="url(#creamGrad)"/>
+
+    <!-- Top Cake Layer -->
+    <path d="M160 230 C160 205, 352 205, 352 230 L352 280 C352 305, 160 305, 160 280 Z" fill="url(#cakeGrad)"/>
+    <path d="M160 230 C160 210, 352 210, 352 230 C352 250, 160 250, 160 230 Z" fill="#fff1f2"/>
+
+    <!-- Frosting Swirls on Top -->
+    <ellipse cx="200" cy="225" rx="14" ry="8" fill="#ffffff"/>
+    <ellipse cx="256" cy="228" rx="16" ry="9" fill="#ffffff"/>
+    <ellipse cx="312" cy="225" rx="14" ry="8" fill="#ffffff"/>
+
+    <!-- Golden Candle -->
+    <rect x="251" y="150" width="10" height="60" rx="3" fill="#fbbf24"/>
+    <line x1="256" y1="150" x2="256" y2="138" stroke="#78350f" stroke-width="2.5"/>
+
+    <!-- Candle Flame -->
+    <path d="M256 112 C248 126, 248 136, 256 142 C264 136, 264 126, 256 112 Z" fill="#f59e0b"/>
+    <circle cx="256" cy="132" r="4" fill="#fef3c7"/>
+
+    <!-- Cherries & Sprinkles -->
+    <circle cx="200" cy="216" r="10" fill="#dc2626"/>
+    <circle cx="312" cy="216" r="10" fill="#dc2626"/>
+    
+    <!-- Sprinkles -->
+    <rect x="180" y="270" width="8" height="3" rx="1.5" fill="#38bdf8" transform="rotate(25 180 270)"/>
+    <rect x="220" y="280" width="8" height="3" rx="1.5" fill="#fbbf24" transform="rotate(-30 220 280)"/>
+    <rect x="280" y="275" width="8" height="3" rx="1.5" fill="#34d399" transform="rotate(45 280 275)"/>
+    <rect x="330" y="270" width="8" height="3" rx="1.5" fill="#f43f5e" transform="rotate(-15 330 270)"/>
+  </g>
+
+  <!-- Bakery Name Banner at Bottom -->
+  <text x="256" y="445" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="34" font-weight="800" text-anchor="middle" fill="#881337" letter-spacing="1">CRAVVY CAKES</text>
+  <text x="256" y="475" font-family="'Plus Jakarta Sans', system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#e11d48" letter-spacing="3">100% PURE VEG</text>
+</svg>

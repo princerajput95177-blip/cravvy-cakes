@@ -1,0 +1,49 @@
+{
+  "id": "/",
+  "name": "Cravvy Cakes - Food Delivery",
+  "short_name": "Cravvy Cakes",
+  "description": "Order freshly baked 100% Pure Veg & Eggless artisanal cakes, cheesecakes, and custom designer cakes.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff1f2",
+  "theme_color": "#e11d48",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    {
+      "src": "/cravvy-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Order Cakes",
+      "short_name": "Cakes",
+      "description": "Browse and order delicious cakes",
+      "url": "/#menu",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Custom Cake Quote",
+      "short_name": "Custom Cake",
+      "description": "Get an instant quote for your dream cake",
+      "url": "/#custom-cake",
+      "icons": [{ "src": "/icon.svg", "sizes": "192x192" }]
+    }
+  ]
+}

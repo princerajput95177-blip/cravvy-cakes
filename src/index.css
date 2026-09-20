@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FFF8F0;
+  --color-cream-50: #FFFCF7;
+  --color-cream-100: #FFF8F0;
+  --color-cream-200: #FDF2E4;
+  --color-cream-300: #F5E5D3;
+  --color-chocolate: #3B2118;
+  --color-chocolate-dark: #2B1A15;
+  --color-chocolate-deep: #1E120E;
+  --color-burgundy: #8B2F3C;
+  --color-burgundy-hover: #732531;
+  --color-burgundy-subtle: #FAF0F2;
+  --color-gold: #C9A227;
+  --color-gold-light: #E0C25C;
+  --color-gold-subtle: #FDF9EC;
+  --color-warm-gray: #7A6A63;
+  --color-warm-border: #E8DACD;
+  --color-dark-bg: #211713;
+  --color-dark-card: #30221D;
+  --color-dark-border: #46332B;
+  --color-warm-white: #FAF4EE;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #FFF8F0;
+  color: #2B1A15;
+}
+
+.dark body {
+  background-color: #211713;
+  color: #FAF4EE;
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideLeft {
+  animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

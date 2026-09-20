@@ -1,0 +1,6 @@
+{
+  "name": "Cravvy Cakes - Food Delivery App",
+  "description": "100% Pure Veg & Eggless bakery mobile app & admin dashboard for Cravvy Cakes with custom cakes, live order tracking, Razorpay checkout, and complete Node.js backend.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
