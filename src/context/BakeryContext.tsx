@@ -264,7 +264,7 @@ function setStoredItem<T>(key: string, value: T): void {
 export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation & View Mode
   const [viewMode, setViewMode] = useState<'customer' | 'admin' | 'codebase'>('customer');
-  const [deviceFrame, setDeviceFrame] = useState<boolean>(true);
+  const [deviceFrame, setDeviceFrame] = useState<boolean>(false);
   const [customerTab, setCustomerTab] = useState<'home' | 'categories' | 'cart' | 'orders' | 'profile'>('home');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     try {

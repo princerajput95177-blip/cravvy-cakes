@@ -95,7 +95,7 @@ export const CustomerApp: React.FC = () => {
   };
 
   const appContent = (
-    <div className="relative flex flex-col h-full bg-[#FFF8F0] dark:bg-[#211713] text-[#2B1A15] dark:text-[#FAF4EE] font-sans overflow-hidden">
+    <div className="relative flex flex-col flex-1 h-full w-full bg-[#FFF8F0] dark:bg-[#211713] text-[#2B1A15] dark:text-[#FAF4EE] font-sans overflow-hidden">
       {/* Toast banner */}
       {activeToast && (
         <div className="absolute top-12 left-4 right-4 z-50 p-3 rounded-2xl bg-[#3B2118]/95 text-[#FAF4EE] text-xs font-semibold shadow-2xl border border-[#C9A227]/40 backdrop-blur-md flex items-center justify-between animate-fadeIn">
@@ -106,17 +106,19 @@ export const CustomerApp: React.FC = () => {
         </div>
       )}
 
-      {/* Mobile Simulated Status Bar */}
-      <div className="px-5 pt-3 pb-1 flex items-center justify-between text-xs text-[#7A6A63] dark:text-[#B8A8A1] select-none bg-inherit z-20">
-        <span className="font-bold text-[11px] text-[#2B1A15] dark:text-[#FAF4EE]">
-          9:41
-        </span>
-        <div className="flex items-center gap-1.5">
-          <Signal className="w-3 h-3" />
-          <Wifi className="w-3 h-3" />
-          <Battery className="w-3.5 h-3.5" />
+      {/* Mobile Simulated Status Bar - only rendered if desktop mockup frame is enabled */}
+      {deviceFrame && (
+        <div className="px-5 pt-3 pb-1 flex items-center justify-between text-xs text-[#7A6A63] dark:text-[#B8A8A1] select-none bg-inherit z-20">
+          <span className="font-bold text-[11px] text-[#2B1A15] dark:text-[#FAF4EE]">
+            9:41
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Signal className="w-3 h-3" />
+            <Wifi className="w-3 h-3" />
+            <Battery className="w-3.5 h-3.5" />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Top Announcement Marquee Ticker if Enabled in Admin Settings */}
       {settings.noticeBarEnabled && settings.noticeBarText && (
@@ -422,10 +424,10 @@ export const CustomerApp: React.FC = () => {
     );
   }
 
-  // Full Screen Responsive View
+  // Full Screen Responsive View: 100% full screen edge-to-edge on mobile phones / APK, centered elegant canvas on desktop
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#F5EADB] dark:bg-[#1A110D] py-4 px-2 sm:px-4 transition-colors">
-      <div className="max-w-xl mx-auto h-[860px] max-h-[90vh] bg-[#FFF8F0] dark:bg-[#211713] rounded-3xl shadow-xl border border-[#E8DACD] dark:border-[#46332B] overflow-hidden flex flex-col">
+    <div className="w-full flex-1 flex flex-col min-h-screen md:min-h-[calc(100vh-60px)] bg-[#FFF8F0] dark:bg-[#211713] md:bg-[#F5EADB] md:dark:bg-[#1A110D] md:py-4 md:px-4 transition-colors">
+      <div className="w-full max-w-lg mx-auto flex-1 flex flex-col bg-[#FFF8F0] dark:bg-[#211713] md:rounded-3xl md:shadow-xl md:border md:border-[#E8DACD] md:dark:border-[#46332B] overflow-hidden min-h-screen md:min-h-0 md:h-[860px] md:max-h-[90vh]">
         {appContent}
       </div>
     </div>
