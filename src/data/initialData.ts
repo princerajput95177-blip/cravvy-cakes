@@ -1040,7 +1040,7 @@ export const INITIAL_SETTINGS: BakerySettings = {
   noticeBarEnabled: false,
   noticeBarText: '',
   noticeBarColor: 'amber',
-  popupEnabled: true,
+  popupEnabled: false,
   popupTitle: 'Celebrate with Pure Luxury! 🎂',
   popupSubtitle: 'Handcrafted with 100% Pure Veg & Eggless ingredients. Order your dream designer cake today with 45-min doorstep express delivery.',
   popupImageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80',
