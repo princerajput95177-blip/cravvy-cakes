@@ -212,7 +212,7 @@ const STORAGE_KEYS = {
   CATEGORIES: 'cravvy_categories_v8',
   BANNERS: 'cravvy_banners_v2',
   COUPONS: 'cravvy_coupons_v2',
-  ORDERS: 'cravvy_orders_v2',
+  ORDERS: 'cravvy_orders_v4',
   CUSTOM_CAKES: 'cravvy_custom_cakes_v2',
   REVIEWS: 'cravvy_reviews_v2',
   CUSTOMERS: 'cravvy_customers_v2',
@@ -403,9 +403,11 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(INITIAL_COUPONS[0]);
 
   // Orders, Banners, Coupons, Custom Cakes
-  const [orders, setOrders] = useState<Order[]>(() =>
-    getStoredItem(STORAGE_KEYS.ORDERS, INITIAL_ORDERS)
-  );
+  const [orders, setOrders] = useState<Order[]>(() => {
+    const list = getStoredItem<Order[]>(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
+    // Remove any mock demo orders (ord-100x) and mock pending orders
+    return list.filter((o) => !o.id.startsWith('ord-100') && o.status !== 'Placed' && o.status !== 'Preparing');
+  });
   const [customCakeRequests, setCustomCakeRequests] = useState<CustomCakeRequest[]>(() =>
     getStoredItem(STORAGE_KEYS.CUSTOM_CAKES, INITIAL_CUSTOM_CAKES)
   );

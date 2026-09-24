@@ -18,7 +18,6 @@ import {
   Zap,
   ShieldCheck,
   User as UserIcon,
-  ChevronDown,
   CheckCircle2,
   Tag,
   Crown,
@@ -31,7 +30,6 @@ export const HomeScreen: React.FC = () => {
     products,
     categories,
     banners,
-    selectedAddress,
     setCustomerTab,
     setSelectedCategorySlug,
     setSelectedProduct,
@@ -99,31 +97,21 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <div className="space-y-5 pb-24" id="customer-home-screen">
-      {/* Top Swiggy-Style Location Header */}
+      {/* Top Customer App Branding Header */}
       <div className="px-4 pt-3.5 pb-1 flex items-center justify-between">
-        <div className="flex items-start gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-2xl bg-[#8B2F3C]/10 text-[#8B2F3C] dark:text-[#C9A227] flex items-center justify-center flex-shrink-0 mt-0.5 border border-[#8B2F3C]/20">
-            <MapPin className="w-5 h-5 fill-[#8B2F3C]/20" />
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#8B2F3C] to-[#A33444] text-[#FAF4EE] flex items-center justify-center flex-shrink-0 shadow-md border border-[#C9A227]/30">
+            <Cake className="w-5 h-5 text-[#FAF4EE]" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1 cursor-pointer" onClick={() => setCustomerTab('profile')}>
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#8B2F3C] dark:text-[#C9A227] block">
-                Deliver To:
-              </span>
-              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-                ⚡ Jalandhar
-              </span>
-            </div>
-            <div className="flex items-center gap-1 cursor-pointer" onClick={() => setCustomerTab('profile')}>
-              <span className="text-sm font-black tracking-tight text-[#2B1A15] dark:text-[#FAF4EE] flex items-center gap-1 truncate">
-                {selectedAddress ? `${selectedAddress.area}, Jalandhar` : 'Select Delivery Address'}
-                <ChevronDown className="w-3.5 h-3.5 text-[#7A6A63] flex-shrink-0" />
-              </span>
-            </div>
-            <p className="text-[11px] text-[#7A6A63] dark:text-[#B8A8A1] truncate max-w-[200px] sm:max-w-xs">
-              {selectedAddress
-                ? `${selectedAddress.houseFlat}, ${selectedAddress.street}`
-                : 'Tap to add your home or office address in Jalandhar'}
+            <h1 className="text-lg font-black tracking-tight text-[#2B1A15] dark:text-[#FAF4EE] flex items-center gap-1">
+              <span>CRAVVY</span>
+              <span className="text-[#8B2F3C] dark:text-[#C9A227] italic font-serif">cakes</span>
+            </h1>
+            <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1] font-semibold flex items-center gap-1">
+              <span>Fresh Artisanal Bakery</span>
+              <span>•</span>
+              <span className="text-emerald-700 dark:text-emerald-400 font-bold">Jalandhar</span>
             </p>
           </div>
         </div>
@@ -133,7 +121,7 @@ export const HomeScreen: React.FC = () => {
           <button
             id="btn-header-wishlist"
             onClick={() => setCustomerTab('wishlist')}
-            className="relative p-2 rounded-2xl bg-white dark:bg-[#30221D] border border-[#E8DACD] dark:border-[#46332B] hover:border-[#8B2F3C] text-[#2B1A15] dark:text-[#FAF4EE] transition active:scale-95 shadow-2xs"
+            className="relative p-2 rounded-2xl bg-white dark:bg-[#30221D] border border-[#E8DACD] dark:border-[#46332B] hover:border-[#8B2F3C] text-[#2B1A15] dark:text-[#FAF4EE] transition active:scale-95 shadow-2xs cursor-pointer"
             title="My Wishlist"
           >
             <Heart className={`w-4 h-4 ${wishlist.length > 0 ? 'fill-[#8B2F3C] text-[#8B2F3C]' : ''}`} />
@@ -147,7 +135,7 @@ export const HomeScreen: React.FC = () => {
           {/* User profile avatar / Login shortcut */}
           <button
             onClick={() => setCustomerTab('profile')}
-            className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-[#30221D] border border-[#E8DACD] dark:border-[#46332B] hover:border-[#C9A227] transition active:scale-95 shadow-2xs"
+            className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-[#30221D] border border-[#E8DACD] dark:border-[#46332B] hover:border-[#C9A227] transition active:scale-95 shadow-2xs cursor-pointer"
             title="Account Profile"
           >
             <div className="w-7 h-7 rounded-xl bg-[#8B2F3C] text-white flex items-center justify-center font-bold text-xs shadow-xs border border-[#C9A227]/40">
@@ -197,38 +185,21 @@ export const HomeScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* 100% Pure Veg Kitchen Guarantee Banner */}
-      <div className="px-4">
-        <div className="flex items-center justify-between p-2.5 px-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-600/30 text-emerald-900 dark:text-emerald-200 shadow-2xs">
-          <div className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-xs border-2 border-emerald-600 flex items-center justify-center bg-white flex-shrink-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-            </span>
-            <span className="text-xs font-black tracking-tight">
-              100% Pure Veg & Eggless Bakery
-            </span>
-          </div>
-          <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-700 text-white shadow-2xs">
-            🌱 Pure Veg Kitchen
-          </span>
-        </div>
-      </div>
-
-      {/* Swiggy Pure Veg Mode & Custom Cake Pill Row */}
+      {/* 100% Pure Veg & Custom Cake 3D Row (Shown only once) */}
       <div className="px-4 flex items-center justify-between gap-2">
         {/* Pure Veg Badge Pill */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-emerald-50 dark:bg-emerald-950/30 border-emerald-600/30 text-emerald-800 dark:text-emerald-300 shadow-2xs">
           <span className="w-3.5 h-3.5 rounded-xs border border-emerald-600 flex items-center justify-center bg-white">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
           </span>
-          <span className="text-[11px] font-extrabold">All Bakes 100% Eggless</span>
+          <span className="text-[11px] font-extrabold">100% Pure Veg & Eggless</span>
         </div>
 
         {/* 3D Custom Cake Studio Button */}
         <button
           id="btn-home-custom-cake-pill"
           onClick={() => setCustomCakeModalOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8B2F3C] hover:bg-[#742531] text-white text-[11px] font-black shadow-xs active:scale-95 transition border border-[#C9A227]/30"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#8B2F3C] hover:bg-[#742531] text-white text-[11px] font-black shadow-xs active:scale-95 transition border border-[#C9A227]/30 cursor-pointer"
         >
           <Sparkles className="w-3.5 h-3.5 text-[#C9A227]" />
           <span>Custom Cake 3D</span>
