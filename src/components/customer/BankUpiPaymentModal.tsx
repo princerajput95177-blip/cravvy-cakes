@@ -52,7 +52,7 @@ export const BankUpiPaymentModal: React.FC<BankUpiPaymentModalProps> = ({
 
   // Dynamic UPI Info from Bakery Settings
   const UPI_ID = settings.upiId || 'q490463229@ybl';
-  const PAYEE_NAME = settings.name || 'kuku cake and bakers';
+  const PAYEE_NAME = 'CRAVVY CAKES';
   const MOBILE_NUMBER = settings.phone || '+91 96539 30001';
 
   // Dynamic Bank Account Info from Bakery Settings
@@ -60,14 +60,14 @@ export const BankUpiPaymentModal: React.FC<BankUpiPaymentModalProps> = ({
   const ACCOUNT_TYPE = 'Current / Business Account';
   const ACCOUNT_NUMBER = settings.bankAccountNumber || '4311966246';
   const IFSC_CODE = settings.bankIfsc || 'KKBK0004019';
-  const BENEFICIARY_NAME = settings.bankBeneficiary || settings.name || 'For KUKU BAKERY CAKES';
+  const BENEFICIARY_NAME = 'CRAVVY CAKES';
   const BRANCH_NAME = settings.address || 'Tanda Road, Jalandhar - 144004, Punjab';
 
   // Deep link for mobile UPI apps
   const upiDeepLink = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(
     PAYEE_NAME
   )}&am=${amount}&cu=INR&tn=${encodeURIComponent(
-    orderNumber ? `${settings.name || 'Bakery'} Order ${orderNumber}` : `${settings.name || 'Bakery'} Order`
+    orderNumber ? `Cravvy Cakes Order ${orderNumber}` : `Cravvy Cakes Order`
   )}`;
 
   // Generate crisp, scannable QR Code

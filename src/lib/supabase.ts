@@ -55,6 +55,9 @@ export const updateSupabaseCredentials = (url: string, anonKey: string) => {
     currentUrl = url.trim();
     currentAnonKey = anonKey.trim();
     supabase = isSupabaseConfigured() ? createClient(currentUrl, currentAnonKey) : null;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('supabase-credentials-changed'));
+    }
   } catch (err) {
     console.error('Failed to save Supabase credentials:', err);
   }
@@ -367,6 +370,59 @@ export const supabaseService = {
       };
     } catch (err: any) {
       return { success: false, message: err?.message || 'Sync failed.' };
+    }
+  },
+
+  // Custom Cakes
+  async insertCustomCake(req: any): Promise<boolean> {
+    if (!supabase) return false;
+    try {
+      const { error } = await supabase.from('custom_cake_requests').insert([
+        {
+          id: req.id,
+          customer_name: req.customerName,
+          customer_phone: req.customerPhone,
+          occasion: req.occasion,
+          flavour: req.flavour,
+          size: req.weightSize,
+          is_eggless: req.isEggless,
+          message: req.cakeMessage,
+          instructions: req.specialInstructions,
+          reference_images: req.referenceImageUrl ? [req.referenceImageUrl] : [],
+          status: req.status || 'Pending Quote',
+          quoted_price: req.quotedPrice || null,
+          admin_notes: req.adminNote || null,
+        },
+      ]);
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
+  // Real-time listener for Orders
+  subscribeToOrders(onUpdate: (order: Order) => void): (() => void) | null {
+    if (!supabase) return null;
+    try {
+      const channel = supabase
+        .channel('realtime-orders')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload: any) => {
+            if (payload.new) {
+              const mapped = mapOrderFromDb(payload.new);
+              onUpdate(mapped);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase?.removeChannel(channel);
+      };
+    } catch {
+      return null;
     }
   },
 };

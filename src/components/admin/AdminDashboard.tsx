@@ -43,6 +43,7 @@ import {
   Upload,
   RotateCcw,
   Check,
+  Lock,
   ExternalLink,
   FileText,
   Layers,
@@ -101,6 +102,7 @@ export const AdminDashboard: React.FC = () => {
     exportConfigJSON,
     importConfigJSON,
     setViewMode,
+    lockAdmin,
     setCustomerTab,
     verifyPayment,
     rejectPayment,
@@ -132,6 +134,7 @@ export const AdminDashboard: React.FC = () => {
     | 'reviews'
     | 'settings'
     | 'notifications'
+    | 'supabase'
   >('dashboard');
 
   // Dedicated "Add New Item" Page State
@@ -569,7 +572,7 @@ export const AdminDashboard: React.FC = () => {
             </div>
             <div>
               <div className="font-extrabold text-sm tracking-tight text-white">
-                KUKU / CRAVVY ADMIN
+                CRAVVY CAKES ADMIN
               </div>
               <div className="text-[10px] text-rose-300 font-medium">
                 Bakery Command Portal
@@ -625,6 +628,13 @@ export const AdminDashboard: React.FC = () => {
                   badge: reviews.filter((r) => r.status === 'Pending').length || undefined,
                 },
                 { id: 'settings', label: '11. Bakery Settings', icon: SettingsIcon },
+                {
+                  id: 'supabase',
+                  label: '12. ⚡ Supabase Cloud DB',
+                  icon: Database,
+                  badge: isSupabaseEnabled ? 'Live' : 'Connect',
+                  isHighlight: true,
+                },
                 { id: 'notifications', label: 'Push Broadcast (FCM)', icon: Bell },
               ];
             })().map((item) => {
@@ -707,7 +717,15 @@ export const AdminDashboard: React.FC = () => {
               title="Open Customer App to see your changes"
             >
               <Eye className="w-4 h-4 text-[#C9A227]" />
-              <span>📱 Live Customer App (Check Changes)</span>
+              <span>📱 Live Customer App</span>
+            </button>
+            <button
+              onClick={lockAdmin}
+              className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-700 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+              title="Lock Admin session and return to Customer App"
+            >
+              <Lock className="w-3.5 h-3.5 text-rose-400" />
+              <span>Lock & Exit Admin</span>
             </button>
             <button
               onClick={() => setActiveAdminTab('settings')}
@@ -3354,13 +3372,19 @@ export const AdminDashboard: React.FC = () => {
                     />
                     <button
                       type="button"
-                      onClick={() => {
+                      disabled={isTestingSupabase}
+                      onClick={async () => {
                         updateSupabaseCredentials(supabaseUrlInput, supabaseKeyInput);
-                        showToast('Supabase credentials saved!');
+                        setIsTestingSupabase(true);
+                        const res = await testSupabaseConnection();
+                        setSupabaseTestResult(res);
+                        setIsTestingSupabase(false);
+                        showToast(res.message);
                       }}
-                      className="px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold transition shrink-0"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
                     >
-                      Save
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{isTestingSupabase ? 'Connecting...' : 'Save & Connect'}</span>
                     </button>
                   </div>
                 </div>
@@ -3693,6 +3717,28 @@ export const AdminDashboard: React.FC = () => {
                     className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-white font-bold"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-neutral-400 mb-1 font-semibold">Free Delivery Radius (km)</label>
+                  <input
+                    type="number"
+                    value={settingsForm.freeDeliveryKm ?? 6}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, freeDeliveryKm: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-white font-bold"
+                  />
+                  <p className="text-[10px] text-emerald-400 mt-0.5">Upto this distance: 100% FREE</p>
+                </div>
+
+                <div>
+                  <label className="block text-neutral-400 mb-1 font-semibold">Extra Charge Above Radius (₹/km)</label>
+                  <input
+                    type="number"
+                    value={settingsForm.perKmCharge ?? 20}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, perKmCharge: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-neutral-700 text-white font-bold"
+                  />
+                  <p className="text-[10px] text-amber-400 mt-0.5">₹20 per km beyond 6 km</p>
+                </div>
               </div>
 
               <div>
@@ -3828,6 +3874,236 @@ export const AdminDashboard: React.FC = () => {
                       onChange={(e) => setSettingsForm({ ...settingsForm, upiId: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-neutral-800 border border-neutral-700 text-white font-mono"
                     />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW 12: DEDICATED SUPABASE CLOUD DATABASE CENTER */}
+        {activeAdminTab === 'supabase' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#362118]">
+              <div>
+                <h1 className="text-2xl font-black text-white flex items-center gap-2.5">
+                  <Database className="w-6 h-6 text-emerald-400" />
+                  <span>Supabase Cloud Database - Permanent Connection</span>
+                </h1>
+                <p className="text-xs text-neutral-400">
+                  Connect your real Supabase PostgreSQL database to store and sync all products, orders, and customer data permanently.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://supabase.com/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-bold border border-neutral-700 flex items-center gap-1.5 transition"
+                >
+                  <span>Open Supabase.com</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSqlModal(true)}
+                  className="px-3.5 py-2 rounded-xl bg-indigo-900/60 hover:bg-indigo-900/80 text-indigo-200 text-xs font-bold border border-indigo-700/60 flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>View SQL Schema</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Connection Status Banner */}
+            <div className={`p-5 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+              isSupabaseEnabled
+                ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-200'
+                : 'bg-amber-950/40 border-amber-700/60 text-amber-200'
+            }`}>
+              <div className="flex items-center gap-3.5">
+                <div className={`w-4 h-4 rounded-full flex-shrink-0 ${isSupabaseEnabled ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                <div>
+                  <h3 className="font-black text-sm text-white flex items-center gap-2">
+                    <span>Database Status:</span>
+                    <span className={isSupabaseEnabled ? 'text-emerald-400 font-extrabold' : 'text-amber-400 font-extrabold'}>
+                      {isSupabaseEnabled ? '🟢 PERMANENTLY CONNECTED TO SUPABASE CLOUD' : '🟡 NOT CONNECTED YET (RUNNING ON LOCAL STORAGE)'}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-neutral-400 mt-0.5">
+                    {isSupabaseEnabled
+                      ? 'All orders, custom cakes, and product catalog updates sync live across all customer devices.'
+                      : 'Enter your Supabase URL & Anon Key below, click "Save & Connect", and push your data to the cloud.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isTestingSupabase}
+                  onClick={async () => {
+                    setIsTestingSupabase(true);
+                    const res = await testSupabaseConnection();
+                    setSupabaseTestResult(res);
+                    setIsTestingSupabase(false);
+                    showToast(res.message);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold border border-neutral-700 flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isTestingSupabase ? 'animate-spin' : ''}`} />
+                  <span>{isTestingSupabase ? 'Testing...' : 'Test Connection'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSyncingSupabase}
+                  onClick={async () => {
+                    setIsSyncingSupabase(true);
+                    await syncAllToSupabase();
+                    setIsSyncingSupabase(false);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Cloud className="w-3.5 h-3.5" />
+                  <span>{isSyncingSupabase ? 'Pushing Data...' : '⚡ Push All Data to Supabase'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Test result message if any */}
+            {supabaseTestResult && (
+              <div className={`p-4 rounded-2xl text-xs font-mono flex items-center gap-2.5 ${
+                supabaseTestResult.success
+                  ? 'bg-emerald-950/50 border border-emerald-800/80 text-emerald-300'
+                  : 'bg-rose-950/50 border border-rose-800/80 text-rose-300'
+              }`}>
+                {supabaseTestResult.success ? <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> : <AlertCircle className="w-5 h-5 flex-shrink-0" />}
+                <span className="font-semibold">{supabaseTestResult.message}</span>
+              </div>
+            )}
+
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+                <div className="text-neutral-400 font-semibold mb-1">Products in Catalog</div>
+                <div className="text-2xl font-black text-white">{products.length}</div>
+                <div className="text-[10px] text-emerald-400 mt-1">Ready for Cloud Sync</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+                <div className="text-neutral-400 font-semibold mb-1">Menu Categories</div>
+                <div className="text-2xl font-black text-white">{categories.length}</div>
+                <div className="text-[10px] text-emerald-400 mt-1">Ready for Cloud Sync</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+                <div className="text-neutral-400 font-semibold mb-1">Total Customer Orders</div>
+                <div className="text-2xl font-black text-white">{orders.length}</div>
+                <div className="text-[10px] text-indigo-400 mt-1">Real-time Order Feed</div>
+              </div>
+              <div className="p-4 rounded-2xl bg-neutral-900 border border-neutral-800">
+                <div className="text-neutral-400 font-semibold mb-1">Custom Cake Requests</div>
+                <div className="text-2xl font-black text-white">{customCakeRequests.length}</div>
+                <div className="text-[10px] text-amber-400 mt-1">Instant Notification</div>
+              </div>
+            </div>
+
+            {/* Configuration Credentials Card */}
+            <div className="p-5 rounded-3xl bg-neutral-900/90 border border-neutral-800 shadow-md space-y-4">
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <SettingsIcon className="w-4 h-4 text-emerald-400" />
+                <span>Supabase API Credentials</span>
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    1. Supabase Project URL:
+                  </label>
+                  <input
+                    type="text"
+                    value={supabaseUrlInput}
+                    onChange={(e) => setSupabaseUrlInput(e.target.value)}
+                    placeholder="https://yourproject.supabase.co"
+                    className="w-full bg-[#18110E] border border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-mono text-neutral-100 focus:outline-none focus:border-emerald-500"
+                  />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Found in Supabase Dashboard &gt; Project Settings &gt; API &gt; Project URL
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-300 mb-1.5">
+                    2. Supabase Anon Public Key:
+                  </label>
+                  <input
+                    type="password"
+                    value={supabaseKeyInput}
+                    onChange={(e) => setSupabaseKeyInput(e.target.value)}
+                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    className="w-full bg-[#18110E] border border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-mono text-neutral-100 focus:outline-none focus:border-emerald-500"
+                  />
+                  <p className="text-[10px] text-neutral-500 mt-1">
+                    Found in Supabase Dashboard &gt; Project Settings &gt; API &gt; Project API keys (anon public)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  disabled={isTestingSupabase}
+                  onClick={async () => {
+                    updateSupabaseCredentials(supabaseUrlInput, supabaseKeyInput);
+                    setIsTestingSupabase(true);
+                    const res = await testSupabaseConnection();
+                    setSupabaseTestResult(res);
+                    setIsTestingSupabase(false);
+                    showToast(res.message);
+                  }}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{isTestingSupabase ? 'Connecting...' : 'Save & Connect Permanently'}</span>
+                </button>
+
+                <p className="text-xs text-neutral-400">
+                  Credentials are saved permanently in your browser storage and loaded on every app startup.
+                </p>
+              </div>
+            </div>
+
+            {/* Step-by-Step Hindi Setup Guide */}
+            <div className="p-5 rounded-3xl bg-[#1A1412] border border-[#3E251B] text-xs text-neutral-300 space-y-3">
+              <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#C9A227]" />
+                <span>Supabase Permanently Connect Karne Ka Aasan 3-Step Process:</span>
+              </h3>
+
+              <div className="space-y-2.5 text-neutral-300 text-xs pl-1">
+                <div className="flex gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center font-bold text-[11px] shrink-0">1</span>
+                  <div>
+                    <strong className="text-white">Supabase par Free Project Banayein:</strong>{' '}
+                    <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 underline">supabase.com</a> par jakar login karein aur "New Project" banayein (apna database password set karein).
+                  </div>
+                </div>
+
+                <div className="flex gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center font-bold text-[11px] shrink-0">2</span>
+                  <div>
+                    <strong className="text-white">SQL Schema Run Karein:</strong>{' '}
+                    Upar <strong>"View SQL Schema"</strong> button dabayein, script ko <strong>"Copy SQL Script"</strong> karein. Fir Supabase Dashboard mein left side <strong>SQL Editor (&gt;_)</strong> par click karke paste karein aur <strong>Run</strong> daba dein. Is se aapki sari tables (<code className="text-amber-300">products</code>, <code className="text-amber-300">orders</code>, <code className="text-amber-300">categories</code>) ban jayengi!
+                  </div>
+                </div>
+
+                <div className="flex gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center font-bold text-[11px] shrink-0">3</span>
+                  <div>
+                    <strong className="text-white">URL & Anon Key Paste Karke Connect Karein:</strong>{' '}
+                    Supabase Project Settings &gt; API se apna <strong>Project URL</strong> aur <strong>anon public key</strong> yahan paste karein aur <strong>"Save & Connect Permanently"</strong> par click karein.
+                    Fir <strong>"⚡ Push All Data to Supabase"</strong> dabayein aur aapka poora bakery data cloud me live ho jayega!
                   </div>
                 </div>
               </div>

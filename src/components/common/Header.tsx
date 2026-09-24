@@ -4,6 +4,7 @@ import { Logo } from './Logo';
 import {
   Smartphone,
   LayoutDashboard,
+  Lock,
   Code2,
   ShoppingBag,
   Bell,
@@ -26,8 +27,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
   const {
     viewMode,
     setViewMode,
-    deviceFrame,
-    setDeviceFrame,
+    isAdminUnlocked,
+    openAdminPortal,
     cart,
     unreadNotificationCount,
     setCustomerTab,
@@ -78,15 +79,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
 
           <button
             id="nav-tab-admin-panel"
-            onClick={() => setViewMode('admin')}
+            onClick={openAdminPortal}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs md:text-sm font-semibold transition-all relative ${
               viewMode === 'admin'
                 ? 'bg-[#8B2F3C] text-white shadow-md border border-[#C9A227]/30'
                 : 'text-[#FAF4EE]/75 hover:text-white hover:bg-[#3B2118]'
             }`}
           >
-            <LayoutDashboard className="w-4 h-4 text-[#C9A227]" />
-            <span className="hidden sm:inline">Admin Panel</span>
+            {isAdminUnlocked ? (
+              <LayoutDashboard className="w-4 h-4 text-[#C9A227]" />
+            ) : (
+              <Lock className="w-3.5 h-3.5 text-[#C9A227]" />
+            )}
+            <span className="hidden sm:inline">{isAdminUnlocked ? 'Admin Panel' : 'Admin Login'}</span>
             <span className="sm:hidden">Admin</span>
             {pendingOrdersCount > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#8B2F3C] text-white font-bold border border-[#C9A227]/40 animate-pulse">
@@ -146,18 +151,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNotifications }) => {
             <Cake className="w-3.5 h-3.5 text-[#C9A227]" />
             <span>Custom Cake Studio</span>
           </button>
-
-          {/* Device Frame Toggle (in Customer View) */}
-          {viewMode === 'customer' && (
-            <button
-              id="btn-toggle-device-frame"
-              onClick={() => setDeviceFrame(!deviceFrame)}
-              title={deviceFrame ? 'Switch to Full Screen View' : 'Switch to Mobile Frame'}
-              className="hidden sm:flex items-center justify-center p-2 rounded-xl bg-[#2B1A15] text-[#FAF4EE]/80 hover:text-white hover:bg-[#4E2E23] border border-[#4E2E23] text-xs transition"
-            >
-              {deviceFrame ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
-            </button>
-          )}
 
           {/* Notifications Button */}
           <button

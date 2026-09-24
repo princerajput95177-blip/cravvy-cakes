@@ -756,6 +756,7 @@ export const INITIAL_ADDRESSES: Address[] = [
     landmark: 'Near Nikku Park',
     type: 'Home',
     isDefault: true,
+    distanceKm: 4.2,
   },
   {
     id: 'addr-2',
@@ -769,6 +770,7 @@ export const INITIAL_ADDRESSES: Address[] = [
     landmark: 'Opposite Puda Complex',
     type: 'Work',
     isDefault: false,
+    distanceKm: 8.5,
   }
 ];
 
@@ -1025,12 +1027,14 @@ export const INITIAL_SETTINGS: BakerySettings = {
   bankName: 'Kotak Mahindra Bank',
   bankAccountNumber: '4311966246',
   bankIfsc: 'KKBK0004019',
-  bankBeneficiary: 'KUKU BAKERY CAKES',
+  bankBeneficiary: 'CRAVVY CAKES',
   openingHours: '8:00 AM - 11:30 PM (All 7 Days)',
   isOpen: true,
   closedNotice: 'Kitchen is currently closed for live baking. Fresh orders resume tomorrow morning at 8:00 AM.',
-  deliveryCharge: 40,
+  deliveryCharge: 0,
   freeDeliveryThreshold: 499,
+  freeDeliveryKm: 6,
+  perKmCharge: 20,
   minimumOrder: 199,
   taxPercentage: 5,
   estimatedDeliveryTime: '30-45 Mins',

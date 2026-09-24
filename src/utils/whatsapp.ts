@@ -4,7 +4,7 @@ export const BAKERY_WHATSAPP_NUMBER = '9653930001';
 export const BAKERY_MAPS_URL = 'https://maps.google.com/maps?q=31.3353649%2C75.5736301&z=17&hl=en';
 export const BAKERY_ADDRESS_TEXT = 'Tanda Road, Jalandhar, Punjab - 144004';
 
-export function formatOrderWhatsAppMessage(order: Order, bakeryName: string = 'KUKU BAKERY / CRAVVY CAKES'): string {
+export function formatOrderWhatsAppMessage(order: Order, bakeryName: string = 'CRAVVY CAKES'): string {
   const itemsList = order.items
     .map(
       (item, idx) =>
@@ -36,7 +36,7 @@ ${itemsList}
 
 💰 *Payment Breakdown:*
 • Subtotal: ₹${order.subtotal}
-• Delivery Charge: ₹${order.deliveryCharge}${order.deliveryCharge === 0 ? ' (FREE Delivery)' : ''}
+• Delivery Charge: ₹${order.deliveryCharge}${order.deliveryCharge === 0 ? ' (FREE Delivery ≤6 km)' : ` (${order.deliveryDistanceKm ? `${order.deliveryDistanceKm} km` : '>6 km @ ₹20/km'})`}
 ${order.discountAmount ? `• Discount: -₹${order.discountAmount} (${order.couponCode || 'Promo'})\n` : ''}• GST/Tax: ₹${order.taxAmount}
 *Total Payable: ₹${order.finalTotal}*
 💳 *Payment Mode:* ${order.paymentMethod}

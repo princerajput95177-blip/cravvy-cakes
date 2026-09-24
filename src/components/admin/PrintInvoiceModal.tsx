@@ -54,7 +54,7 @@ export const PrintInvoiceModal: React.FC<PrintInvoiceModalProps> = ({
           {/* Bakery Header */}
           <div className="text-center space-y-1 pb-3 border-b border-dashed border-neutral-300">
             <div className="text-lg font-black tracking-wider uppercase font-sans">
-              {settings.name || 'KUKU BAKERY / CRAVVY CAKES'}
+              {settings.name || 'CRAVVY CAKES'}
             </div>
             <p className="text-[11px] text-neutral-600">
               {settings.tagline || 'Handcrafted Bakes, Custom 3D Cakes & Confectionery'}
@@ -169,7 +169,7 @@ export const PrintInvoiceModal: React.FC<PrintInvoiceModalProps> = ({
           {/* Footer message */}
           <div className="text-center pt-4 pb-2 border-t border-dashed border-neutral-300 text-[10px] text-neutral-500 space-y-1">
             <p className="font-bold text-neutral-800">
-              Thank you for celebrating with Kuku Bakery / Cravvy Cakes! 🎂
+              Thank you for celebrating with Cravvy Cakes! 🎂
             </p>
             <p>For custom cake inquiries & catering: +91 96539 30001</p>
             <p>Location: Tanda Road, Jalandhar (Punjab) • maps.google.com/maps?q=31.3353649,75.5736301</p>

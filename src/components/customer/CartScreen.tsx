@@ -32,6 +32,7 @@ export const CartScreen: React.FC = () => {
     cartDiscount,
     cartTax,
     cartTotal,
+    deliveryDistanceKm,
     setCustomerTab,
     setActiveTrackingOrderId,
     showToast,
@@ -408,6 +409,41 @@ export const CartScreen: React.FC = () => {
         )}
       </div>
 
+      {/* 6 km Free Delivery Banner */}
+      <div className={`p-3 rounded-2xl border flex items-center justify-between text-xs ${
+        cartDeliveryCharge === 0
+          ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800/60'
+          : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800/60'
+      }`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
+            cartDeliveryCharge === 0 ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
+          }`}>
+            🛵
+          </div>
+          <div>
+            <div className="font-bold text-[#2B1A15] dark:text-[#FAF4EE] flex items-center gap-1.5">
+              <span>Free Delivery upto 6 km!</span>
+              {cartDeliveryCharge === 0 ? (
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-600 text-white">
+                  APPLIED
+                </span>
+              ) : null}
+            </div>
+            <div className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1]">
+              {deliveryDistanceKm <= 6
+                ? `📍 Distance: ${deliveryDistanceKm} km • FREE delivery across Jalandhar within 6 km`
+                : `📍 Distance: ${deliveryDistanceKm} km • 6 km Free + ${Math.ceil(deliveryDistanceKm - 6)} km extra @ ₹20/km`}
+            </div>
+          </div>
+        </div>
+        <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
+          cartDeliveryCharge === 0 ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
+        }`}>
+          {cartDeliveryCharge === 0 ? 'FREE' : `+₹${cartDeliveryCharge}`}
+        </span>
+      </div>
+
       {/* Bill Details Breakdown */}
       <div className="p-4 rounded-3xl bg-white dark:bg-[#30221D] border border-[#E8DACD] dark:border-[#46332B] space-y-2 text-xs shadow-xs">
         <h3 className="font-bold text-[#2B1A15] dark:text-[#FAF4EE] pb-1 border-b border-[#E8DACD] dark:border-[#46332B]">
@@ -427,12 +463,17 @@ export const CartScreen: React.FC = () => {
         )}
 
         <div className="flex justify-between text-[#7A6A63] dark:text-[#B8A8A1]">
-          <span>Delivery Partner Fee:</span>
+          <span>Delivery Partner Fee ({deliveryDistanceKm} km):</span>
           <span>
             {cartDeliveryCharge === 0 ? (
-              <span className="text-emerald-600 font-bold">FREE</span>
+              <span className="text-emerald-600 font-bold">FREE (within 6 km)</span>
             ) : (
-              `₹${cartDeliveryCharge}`
+              <span className="font-bold text-[#8B2F3C] dark:text-[#C9A227]">
+                ₹{cartDeliveryCharge}{' '}
+                <span className="text-[10px] text-neutral-500 font-normal">
+                  (&gt;6 km @ ₹20/km)
+                </span>
+              </span>
             )}
           </span>
         </div>

@@ -311,7 +311,7 @@ export const OrderTrackingView: React.FC<OrderTrackingViewProps> = ({
             </div>
             <div>
               <h4 className="text-xs font-bold text-[#2B1A15] dark:text-[#FAF4EE]">
-                Cravvy / Kuku Bakery Kitchen Desk
+                Cravvy Cakes Kitchen Desk
               </h4>
               <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1]">
                 {BAKERY_ADDRESS_TEXT}

@@ -12,6 +12,7 @@ import {
   FileText,
   LogOut,
   LayoutDashboard,
+  Lock,
   Plus,
   Trash2,
   Check,
@@ -35,6 +36,8 @@ export const ProfileScreen: React.FC = () => {
     addAddress,
     deleteAddress,
     setViewMode,
+    openAdminPortal,
+    isAdminUnlocked,
     setCustomerTab,
     setIsAuthModalOpen,
     showToast,
@@ -232,11 +235,11 @@ export const ProfileScreen: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setViewMode('admin')}
-          className="px-3.5 py-2 rounded-xl bg-[#3B2118] text-white hover:bg-[#2B1A15] text-xs font-bold shadow-md transition flex items-center gap-1.5 border border-[#C9A227]/40"
+          onClick={openAdminPortal}
+          className="px-3.5 py-2 rounded-xl bg-[#3B2118] text-white hover:bg-[#2B1A15] text-xs font-bold shadow-md transition flex items-center gap-1.5 border border-[#C9A227]/40 cursor-pointer"
         >
-          <LayoutDashboard className="w-3.5 h-3.5 text-[#C9A227]" />
-          <span>Admin</span>
+          <Lock className="w-3.5 h-3.5 text-[#C9A227]" />
+          <span>{isAdminUnlocked ? 'Open Admin' : 'Admin Login'}</span>
         </button>
       </div>
 
@@ -249,7 +252,7 @@ export const ProfileScreen: React.FC = () => {
             </div>
             <div>
               <h3 className="text-xs font-black text-[#2B1A15] dark:text-[#FAF4EE]">
-                Kuku Bakery / Cravvy Cakes Store
+                Cravvy Cakes Store
               </h3>
               <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1]">
                 {BAKERY_ADDRESS_TEXT}
@@ -274,7 +277,7 @@ export const ProfileScreen: React.FC = () => {
           </a>
 
           <a
-            href={`https://wa.me/91${BAKERY_WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Kuku Bakery, I want to inquire about cakes/delivery.')}`}
+            href={`https://wa.me/91${BAKERY_WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello Cravvy Cakes, I want to inquire about cakes/delivery.')}`}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 text-xs font-bold transition shadow-2xs"

@@ -35,6 +35,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     cartDiscount,
     cartTax,
     cartTotal,
+    deliveryDistanceKm,
+    setDeliveryDistanceKm,
     savedAddresses,
     selectedAddress,
     setSelectedAddress,
@@ -57,6 +59,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [newAddrStreet, setNewAddrStreet] = useState('');
   const [newAddrArea, setNewAddrArea] = useState('');
   const [newAddrPincode, setNewAddrPincode] = useState('144003');
+  const [newAddrDistance, setNewAddrDistance] = useState<number>(4.0);
 
   const handleCreateOrder = async (payInfo?: { paymentId: string; method: PaymentMethod }) => {
     try {
@@ -167,20 +170,30 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE]"
                   />
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-[#7A6A63] dark:text-[#B8A8A1]">Quick Select Jalandhar Area:</label>
+                    <label className="text-[10px] font-bold text-[#7A6A63] dark:text-[#B8A8A1]">Quick Select Jalandhar Area (Auto sets approx km):</label>
                     <div className="flex flex-wrap gap-1">
-                      {['Model Town', 'Urban Estate II', 'Cantt', 'Rama Mandi', 'Civil Lines', 'BMC Chowk'].map((areaName) => (
+                      {[
+                        { name: 'Model Town', dist: 4.2 },
+                        { name: 'Civil Lines', dist: 3.0 },
+                        { name: 'BMC Chowk', dist: 3.5 },
+                        { name: 'Cantt', dist: 5.5 },
+                        { name: 'Rama Mandi', dist: 7.5 },
+                        { name: 'Urban Estate II', dist: 8.5 },
+                      ].map((item) => (
                         <button
-                          key={areaName}
+                          key={item.name}
                           type="button"
-                          onClick={() => setNewAddrArea(areaName)}
+                          onClick={() => {
+                            setNewAddrArea(item.name);
+                            setNewAddrDistance(item.dist);
+                          }}
                           className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border transition ${
-                            newAddrArea === areaName
+                            newAddrArea === item.name
                               ? 'bg-[#8B2F3C] text-white border-[#8B2F3C]'
                               : 'bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1] border-[#E8DACD] dark:border-[#46332B]'
                           }`}
                         >
-                          {areaName}
+                          {item.name} ({item.dist} km)
                         </button>
                       ))}
                     </div>
@@ -201,6 +214,31 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       className="w-full px-3 py-2 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE]"
                     />
                   </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#7A6A63] dark:text-[#B8A8A1] block mb-1">
+                      Distance from Bakery (km):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="30"
+                        step="0.5"
+                        value={newAddrDistance}
+                        onChange={(e) => setNewAddrDistance(Number(e.target.value))}
+                        className="w-24 px-3 py-1.5 rounded-xl border border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#2B1A15] dark:text-[#FAF4EE] font-bold text-xs"
+                      />
+                      <span className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1]">
+                        {newAddrDistance <= 6 ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">✓ 100% Free Delivery (&le; 6 km)</span>
+                        ) : (
+                          <span className="text-amber-600 dark:text-amber-400 font-bold">
+                            +₹{Math.ceil(newAddrDistance - 6) * 20} Delivery Charge ({Math.ceil(newAddrDistance - 6)} km @ ₹20/km)
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -216,9 +254,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                         area: newAddrArea,
                         city: 'Jalandhar',
                         pincode: newAddrPincode || '144003',
+                        distanceKm: newAddrDistance || 4.2,
                         type: 'Home' as const,
                       };
                       setSelectedAddress({ ...newAddress, id: 'addr-' + Date.now() });
+                      setDeliveryDistanceKm(newAddrDistance || 4.2);
                       setShowAddAddress(false);
                       showToast('Delivery address saved & selected!');
                     }}
@@ -229,36 +269,109 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-2">
-                  {savedAddresses.map((addr) => (
-                    <div
-                      key={addr.id}
-                      onClick={() => setSelectedAddress(addr)}
-                      className={`p-3 rounded-2xl border cursor-pointer transition flex items-start justify-between ${
-                        selectedAddress?.id === addr.id
-                          ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#33231D] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
-                          : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1]'
-                      }`}
-                    >
-                      <div className="text-xs space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-[#2B1A15] dark:text-[#FAF4EE]">{addr.name}</span>
-                          <span className="px-1.5 py-0.2 rounded bg-[#8B2F3C]/10 text-[#8B2F3C] dark:text-[#C9A227] text-[10px] font-bold">
-                            {addr.type}
-                          </span>
+                  {savedAddresses.map((addr) => {
+                    const dist = addr.distanceKm ?? 4.2;
+                    const isFree = dist <= 6;
+                    return (
+                      <div
+                        key={addr.id}
+                        onClick={() => {
+                          setSelectedAddress(addr);
+                          if (addr.distanceKm) setDeliveryDistanceKm(addr.distanceKm);
+                        }}
+                        className={`p-3 rounded-2xl border cursor-pointer transition flex items-start justify-between ${
+                          selectedAddress?.id === addr.id
+                            ? 'border-[#8B2F3C] bg-[#FFF8F0] dark:bg-[#33231D] text-[#2B1A15] dark:text-[#FAF4EE] shadow-xs ring-1 ring-[#8B2F3C]'
+                            : 'border-[#E8DACD] dark:border-[#46332B] bg-white dark:bg-[#2A1D18] text-[#7A6A63] dark:text-[#B8A8A1]'
+                        }`}
+                      >
+                        <div className="text-xs space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-[#2B1A15] dark:text-[#FAF4EE]">{addr.name}</span>
+                            <span className="px-1.5 py-0.2 rounded bg-[#8B2F3C]/10 text-[#8B2F3C] dark:text-[#C9A227] text-[10px] font-bold">
+                              {addr.type}
+                            </span>
+                            <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                              isFree
+                                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
+                                : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                            }`}>
+                              📍 {dist} km {isFree ? '• FREE' : `• +₹${Math.ceil(dist - 6) * 20}`}
+                            </span>
+                          </div>
+                          <p className="text-[#7A6A63] dark:text-[#B8A8A1] line-clamp-1">
+                            {addr.houseFlat}, {addr.street}, {addr.area}, Jalandhar - {addr.pincode}
+                          </p>
                         </div>
-                        <p className="text-[#7A6A63] dark:text-[#B8A8A1] line-clamp-1">
-                          {addr.houseFlat}, {addr.street}, {addr.area}, Jalandhar - {addr.pincode}
-                        </p>
+                        {selectedAddress?.id === addr.id && (
+                          <div className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center flex-shrink-0">
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                          </div>
+                        )}
                       </div>
-                      {selectedAddress?.id === addr.id && (
-                        <div className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center flex-shrink-0">
-                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
+
+              {/* Delivery Distance Transparency Card */}
+              <div
+                className={`p-3 rounded-2xl border transition ${
+                  cartDeliveryCharge === 0
+                    ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800/60'
+                    : 'bg-amber-50/80 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/60'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
+                        cartDeliveryCharge === 0 ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
+                      }`}
+                    >
+                      🛵
+                    </div>
+                    <div>
+                      <div className="text-xs font-black text-[#2B1A15] dark:text-[#FAF4EE] flex items-center gap-1.5">
+                        <span>Delivery Distance: {deliveryDistanceKm} km</span>
+                        {cartDeliveryCharge === 0 ? (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-600 text-white">
+                            FREE DELIVERY (Upto 6 km)
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-600 text-white">
+                            +₹{cartDeliveryCharge} CHARGE
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[#7A6A63] dark:text-[#B8A8A1] mt-0.5">
+                        {deliveryDistanceKm <= 6
+                          ? '🎉 6 km tak Free Delivery hai! You pay ₹0 delivery fees.'
+                          : `📍 6 km tak free delivery hai. 6 km ke upar har 1 km pe ₹20 extra lagega (${Math.ceil(deliveryDistanceKm - 6)} km × ₹20 = ₹${cartDeliveryCharge}).`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick distance slider / fine-tuner */}
+                <div className="mt-2 pt-2 border-t border-[#E8DACD]/60 dark:border-[#46332B]/60 flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold text-[#7A6A63] dark:text-[#B8A8A1] whitespace-nowrap">
+                    Tune Distance:
+                  </span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    step="0.5"
+                    value={deliveryDistanceKm}
+                    onChange={(e) => setDeliveryDistanceKm(Number(e.target.value))}
+                    className="flex-1 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-[#8B2F3C]"
+                  />
+                  <span className="font-black text-xs text-[#2B1A15] dark:text-[#FAF4EE] min-w-[45px] text-right">
+                    {deliveryDistanceKm} km
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* 2. Delivery Date & Time Slot */}
@@ -538,8 +651,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
               <div className="flex justify-between text-[#7A6A63] dark:text-[#B8A8A1]">
-                <span>Delivery Charge:</span>
-                <span>{cartDeliveryCharge === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : `₹${cartDeliveryCharge}`}</span>
+                <span>Delivery Charge ({deliveryDistanceKm} km):</span>
+                <span>
+                  {cartDeliveryCharge === 0 ? (
+                    <span className="text-emerald-600 font-bold">FREE (within 6 km)</span>
+                  ) : (
+                    <span className="font-bold text-[#8B2F3C] dark:text-[#C9A227]">
+                      ₹{cartDeliveryCharge}{' '}
+                      <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-normal">
+                        (&gt;6 km @ ₹20/km)
+                      </span>
+                    </span>
+                  )}
+                </span>
               </div>
               <div className="flex justify-between text-[#7A6A63] dark:text-[#B8A8A1]">
                 <span>GST (5%):</span>

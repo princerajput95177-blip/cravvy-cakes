@@ -106,6 +106,8 @@ export interface BakerySettings {
   closedNotice: string;
   deliveryCharge: number;
   freeDeliveryThreshold: number;
+  freeDeliveryKm?: number;
+  perKmCharge?: number;
   minimumOrder: number;
   taxPercentage: number;
   estimatedDeliveryTime: string;
@@ -169,6 +171,7 @@ export interface Address {
   landmark?: string;
   type: 'Home' | 'Work' | 'Other';
   isDefault?: boolean;
+  distanceKm?: number;
 }
 
 export type OrderStatus =
@@ -206,6 +209,7 @@ export interface Order {
   items: CartItem[];
   subtotal: number;
   deliveryCharge: number;
+  deliveryDistanceKm?: number;
   discountAmount: number;
   couponCode?: string;
   taxAmount: number;

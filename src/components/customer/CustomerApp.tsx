@@ -106,20 +106,6 @@ export const CustomerApp: React.FC = () => {
         </div>
       )}
 
-      {/* Mobile Simulated Status Bar - only rendered if desktop mockup frame is enabled */}
-      {deviceFrame && (
-        <div className="px-5 pt-3 pb-1 flex items-center justify-between text-xs text-[#7A6A63] dark:text-[#B8A8A1] select-none bg-inherit z-20">
-          <span className="font-bold text-[11px] text-[#2B1A15] dark:text-[#FAF4EE]">
-            9:41
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Signal className="w-3 h-3" />
-            <Wifi className="w-3 h-3" />
-            <Battery className="w-3.5 h-3.5" />
-          </div>
-        </div>
-      )}
-
       {/* Top Announcement Marquee Ticker if Enabled in Admin Settings */}
       {settings.noticeBarEnabled && settings.noticeBarText && (
         <div
@@ -334,33 +320,10 @@ export const CustomerApp: React.FC = () => {
     return <SplashScreen onEnter={() => setShowSplash(false)} />;
   }
 
-  // If Device Frame mode is enabled (renders realistic smartphone mockup)
-  if (deviceFrame) {
-    return (
-      <div className="min-h-[calc(100vh-60px)] bg-[#F5EADB] dark:bg-[#1A110D] flex items-center justify-center p-3 sm:p-6 select-none transition-colors">
-        <div className="relative w-full max-w-[420px] h-[844px] max-h-[92vh] bg-[#2B1A15] rounded-[48px] p-3.5 shadow-2xl shadow-[#3B2118]/30 border-4 border-[#3E271F] ring-1 ring-[#54362A] flex flex-col overflow-hidden">
-          {/* Phone Dynamic Island / Camera Notch */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-4 bg-[#1E120E] rounded-full z-40 flex items-center justify-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-[#3B2118]"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-[#2B1A15]"></div>
-          </div>
-
-          {/* Phone Screen Canvas */}
-          <div className="w-full h-full rounded-[38px] overflow-hidden flex flex-col bg-[#FFF8F0] dark:bg-[#211713]">
-            {appContent}
-          </div>
-
-          {/* Home Bar */}
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-32 h-1 bg-[#C9A227]/60 rounded-full z-40 pointer-events-none opacity-60"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // Full Screen Responsive View: 100% full screen edge-to-edge on mobile phones / APK, centered elegant canvas on desktop
+  // Pure Native Mobile View: 100% full screen edge-to-edge on mobile, strictly mobile width (max-w-md) on desktop
   return (
-    <div className="w-full flex-1 flex flex-col min-h-screen md:min-h-[calc(100vh-60px)] bg-[#FFF8F0] dark:bg-[#211713] md:bg-[#F5EADB] md:dark:bg-[#1A110D] md:py-4 md:px-4 transition-colors">
-      <div className="w-full max-w-lg mx-auto flex-1 flex flex-col bg-[#FFF8F0] dark:bg-[#211713] md:rounded-3xl md:shadow-xl md:border md:border-[#E8DACD] md:dark:border-[#46332B] overflow-hidden min-h-screen md:min-h-0 md:h-[860px] md:max-h-[90vh]">
+    <div className="w-full flex-1 flex flex-col min-h-screen bg-[#FFF8F0] dark:bg-[#211713] md:bg-[#EDE0D2] md:dark:bg-[#150D0A] transition-colors">
+      <div className="w-full max-w-md mx-auto flex-1 flex flex-col bg-[#FFF8F0] dark:bg-[#211713] md:shadow-2xl md:border-x md:border-[#E8DACD] md:dark:border-[#3D2820] overflow-hidden min-h-screen">
         {appContent}
       </div>
     </div>

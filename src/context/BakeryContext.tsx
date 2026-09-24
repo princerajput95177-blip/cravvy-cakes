@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   Category,
   Product,
@@ -44,6 +44,12 @@ interface BakeryContextType {
   // App view & Mode
   viewMode: 'customer' | 'admin' | 'codebase';
   setViewMode: (mode: 'customer' | 'admin' | 'codebase') => void;
+  isAdminUnlocked: boolean;
+  adminPasswordModalOpen: boolean;
+  setAdminPasswordModalOpen: (open: boolean) => void;
+  openAdminPortal: () => void;
+  verifyAdminPassword: (password: string) => boolean;
+  lockAdmin: () => void;
   deviceFrame: boolean;
   setDeviceFrame: (frame: boolean) => void;
   customerTab: 'home' | 'categories' | 'cart' | 'orders' | 'profile' | 'wishlist';
@@ -121,6 +127,9 @@ interface BakeryContextType {
   cartDiscount: number;
   cartTax: number;
   cartTotal: number;
+  deliveryDistanceKm: number;
+  setDeliveryDistanceKm: (dist: number) => void;
+  calculateDeliveryCharge: (dist: number) => number;
 
   // Orders
   orders: Order[];
@@ -263,8 +272,59 @@ function setStoredItem<T>(key: string, value: T): void {
 
 export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Navigation & View Mode
-  const [viewMode, setViewMode] = useState<'customer' | 'admin' | 'codebase'>('customer');
-  const [deviceFrame, setDeviceFrame] = useState<boolean>(true);
+  const [viewMode, setViewModeState] = useState<'customer' | 'admin' | 'codebase'>('customer');
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('cravvy_admin_unlocked') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [adminPasswordModalOpen, setAdminPasswordModalOpen] = useState<boolean>(false);
+  const [deviceFrame, setDeviceFrame] = useState<boolean>(false);
+
+  const setViewMode = (mode: 'customer' | 'admin' | 'codebase') => {
+    if (mode === 'admin' && !isAdminUnlocked) {
+      setAdminPasswordModalOpen(true);
+      return;
+    }
+    setViewModeState(mode);
+  };
+
+  const openAdminPortal = () => {
+    if (isAdminUnlocked) {
+      setViewModeState('admin');
+    } else {
+      setAdminPasswordModalOpen(true);
+    }
+  };
+
+  const verifyAdminPassword = (password: string): boolean => {
+    if (password.trim() === 'Simran@2208-') {
+      setIsAdminUnlocked(true);
+      try {
+        sessionStorage.setItem('cravvy_admin_unlocked', 'true');
+      } catch {
+        // ignore
+      }
+      setViewModeState('admin');
+      setAdminPasswordModalOpen(false);
+      setActiveToast('Admin Portal Unlocked! Welcome, Store Manager.');
+      return true;
+    }
+    return false;
+  };
+
+  const lockAdmin = () => {
+    setIsAdminUnlocked(false);
+    try {
+      sessionStorage.removeItem('cravvy_admin_unlocked');
+    } catch {
+      // ignore
+    }
+    setViewModeState('customer');
+    setActiveToast('Admin session locked.');
+  };
   const [customerTab, setCustomerTab] = useState<'home' | 'categories' | 'cart' | 'orders' | 'profile'>('home');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     try {
@@ -322,6 +382,13 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [savedAddresses, setSavedAddresses] = useState<Address[]>(INITIAL_ADDRESSES);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(INITIAL_ADDRESSES[0] || null);
+  const [deliveryDistanceKm, setDeliveryDistanceKm] = useState<number>(INITIAL_ADDRESSES[0]?.distanceKm || 4.2);
+
+  useEffect(() => {
+    if (selectedAddress?.distanceKm !== undefined) {
+      setDeliveryDistanceKm(selectedAddress.distanceKm);
+    }
+  }, [selectedAddress]);
 
   // Catalog & Entities with persistent storage
   const [categories, setCategories] = useState<Category[]>(() => getStoredCategories());
@@ -387,10 +454,13 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, []);
 
   // Supabase Real-time Cloud Persistence
-  const isSupabaseEnabled = isSupabaseConfigured();
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean>(() => isSupabaseConfigured());
+  const isSupabaseEnabled = supabaseConnected;
 
   const testSupabaseConnection = async () => {
-    return await supabaseService.testConnection();
+    const res = await supabaseService.testConnection();
+    setSupabaseConnected(isSupabaseConfigured());
+    return res;
   };
 
   const syncAllToSupabase = async () => {
@@ -403,9 +473,9 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return res;
   };
 
-  // Hydrate from Supabase on startup when configured
-  useEffect(() => {
+  const hydrateFromSupabase = useCallback(() => {
     if (!isSupabaseConfigured()) return;
+    setSupabaseConnected(true);
 
     supabaseService.getProducts().then((remoteProds) => {
       if (remoteProds && remoteProds.length > 0) {
@@ -425,6 +495,35 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
   }, []);
+
+  // Hydrate from Supabase on startup and when credentials change
+  useEffect(() => {
+    hydrateFromSupabase();
+
+    const handleCredChange = () => {
+      setSupabaseConnected(isSupabaseConfigured());
+      hydrateFromSupabase();
+    };
+    window.addEventListener('supabase-credentials-changed', handleCredChange);
+    return () => window.removeEventListener('supabase-credentials-changed', handleCredChange);
+  }, [hydrateFromSupabase]);
+
+  // Real-time listener for incoming orders and status updates
+  useEffect(() => {
+    if (!supabaseConnected) return;
+    const unsubscribe = supabaseService.subscribeToOrders((updatedOrder) => {
+      setOrders((prev) => {
+        const exists = prev.some((o) => o.id === updatedOrder.id);
+        if (exists) {
+          return prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o));
+        }
+        return [updatedOrder, ...prev];
+      });
+    });
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [supabaseConnected]);
 
   // Notifications
   const [notifications, setNotifications] = useState<BakeryNotification[]>([
@@ -622,13 +721,21 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   // Cart Calculations
+  const freeKm = settings.freeDeliveryKm ?? 6;
+  const perKmRate = settings.perKmCharge ?? 20;
+
+  const calculateDeliveryCharge = useCallback(
+    (dist: number): number => {
+      if (dist <= freeKm) return 0;
+      const extraKm = Math.ceil(dist - freeKm);
+      return extraKm * perKmRate;
+    },
+    [freeKm, perKmRate]
+  );
+
   const cartSubtotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
   const cartDeliveryCharge =
-    cartSubtotal === 0
-      ? 0
-      : cartSubtotal >= (settings.freeDeliveryThreshold ?? 499)
-      ? 0
-      : (settings.deliveryCharge ?? 40);
+    cartSubtotal === 0 ? 0 : calculateDeliveryCharge(deliveryDistanceKm);
 
   let cartDiscount = 0;
   if (appliedCoupon && cartSubtotal >= appliedCoupon.minOrderValue) {
@@ -789,6 +896,7 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       items: [...cart],
       subtotal: cartSubtotal,
       deliveryCharge: cartDeliveryCharge,
+      deliveryDistanceKm: deliveryDistanceKm,
       discountAmount: cartDiscount,
       couponCode: appliedCoupon?.code,
       taxAmount: cartTax,
@@ -1062,6 +1170,10 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     setCustomCakeRequests((prev) => [newReq, ...prev]);
+
+    if (isSupabaseConfigured()) {
+      supabaseService.insertCustomCake(newReq);
+    }
 
     broadcastNotification({
       title: `Custom Cake Request ${newReq.requestNumber} Received!`,
@@ -1368,6 +1480,12 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         viewMode,
         setViewMode,
+        isAdminUnlocked,
+        adminPasswordModalOpen,
+        setAdminPasswordModalOpen,
+        openAdminPortal,
+        verifyAdminPassword,
+        lockAdmin,
         deviceFrame,
         setDeviceFrame,
         customerTab,
@@ -1427,6 +1545,9 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         cartDiscount,
         cartTax,
         cartTotal,
+        deliveryDistanceKm,
+        setDeliveryDistanceKm,
+        calculateDeliveryCharge,
 
         orders,
         placeOrder,
