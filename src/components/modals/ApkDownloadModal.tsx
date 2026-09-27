@@ -369,6 +369,36 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
                     <ExternalLink className="w-3.5 h-3.5 text-white/80" />
                   </a>
                 </div>
+
+                {/* Play Store Requirement: Account Deletion URL */}
+                <div className="bg-rose-50/70 dark:bg-rose-950/30 p-4 rounded-2xl border border-rose-300 dark:border-rose-900/60 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-rose-600" />
+                      Play Store Required: Account Deletion URL
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100">
+                      Policy Compliant
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#6E4F42] dark:text-[#D1BEB0]">
+                    Google Play Console me <strong>Data Safety &gt; Account Deletion URL</strong> mangne par yeh URL enter karein:
+                  </p>
+                  <div className="p-2 rounded-xl bg-white dark:bg-[#201511] border border-rose-200 dark:border-rose-900 font-mono text-[11px] text-rose-900 dark:text-rose-200 break-all select-all flex items-center justify-between gap-2">
+                    <span>{appUrl}?view=delete-account</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${appUrl}?view=delete-account`);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      }}
+                      className="p-1 px-2 rounded-lg bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 text-[10px] font-bold shrink-0 hover:bg-rose-200"
+                    >
+                      Copy Link
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}

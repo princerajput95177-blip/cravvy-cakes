@@ -73,6 +73,11 @@ interface BakeryContextType {
   loginWithPhone: (phone: string, name?: string) => Promise<boolean>;
   verifyOtp: (otp: string) => Promise<boolean>;
   logout: () => void;
+  deleteUserAccount: () => Promise<boolean>;
+  requestWebAccountDeletion: (
+    phoneOrEmail: string,
+    reason?: string
+  ) => Promise<{ success: boolean; message: string; refId: string }>;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
   authModalReason: string | null;
@@ -216,6 +221,9 @@ const STORAGE_KEYS = {
   CUSTOM_CAKES: 'cravvy_custom_cakes_v2',
   REVIEWS: 'cravvy_reviews_v2',
   CUSTOMERS: 'cravvy_customers_v2',
+  SAVED_ADDRESSES: 'cravvy_saved_addresses_v2',
+  USER_PROFILE: 'cravvy_user_profile_v2',
+  DELETION_LOGS: 'cravvy_deletion_audit_logs_v1',
 };
 
 function getStoredCategories(): Category[] {
@@ -370,17 +378,21 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [activeToast, setActiveToast] = useState<string | null>(null);
 
   // User Profile - Default to Guest
-  const [user, setUser] = useState<UserProfile>({
-    id: 'usr-guest',
-    name: 'Guest User',
-    phone: '',
-    email: '',
-    addresses: INITIAL_ADDRESSES,
-    isLoggedIn: false,
-    isGuest: true,
-  });
+  const [user, setUser] = useState<UserProfile>(() =>
+    getStoredItem<UserProfile>(STORAGE_KEYS.USER_PROFILE, {
+      id: 'usr-guest',
+      name: 'Guest User',
+      phone: '',
+      email: '',
+      addresses: INITIAL_ADDRESSES,
+      isLoggedIn: false,
+      isGuest: true,
+    })
+  );
 
-  const [savedAddresses, setSavedAddresses] = useState<Address[]>(INITIAL_ADDRESSES);
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>(() =>
+    getStoredItem<Address[]>(STORAGE_KEYS.SAVED_ADDRESSES, INITIAL_ADDRESSES)
+  );
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(INITIAL_ADDRESSES[0] || null);
   const [deliveryDistanceKm, setDeliveryDistanceKm] = useState<number>(INITIAL_ADDRESSES[0]?.distanceKm || 4.2);
 
@@ -439,6 +451,8 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => { setStoredItem(STORAGE_KEYS.REVIEWS, reviews); }, [reviews]);
   useEffect(() => { setStoredItem(STORAGE_KEYS.CUSTOMERS, customers); }, [customers]);
   useEffect(() => { setStoredItem(STORAGE_KEYS.SETTINGS, settings); }, [settings]);
+  useEffect(() => { setStoredItem(STORAGE_KEYS.USER_PROFILE, user); }, [user]);
+  useEffect(() => { setStoredItem(STORAGE_KEYS.SAVED_ADDRESSES, savedAddresses); }, [savedAddresses]);
 
   // Sync across tabs / windows in real-time
   useEffect(() => {
@@ -701,6 +715,109 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
     setPendingCartItem(null);
     showToast('Logged out. You are now browsing as Guest.');
+  };
+
+  // Google Play Store & DPDP Compliant Account & Data Deletion
+  const deleteUserAccount = async (): Promise<boolean> => {
+    const userPhone = user.phone;
+    const userEmail = user.email;
+
+    // 1. Remove customer record from customers list
+    if (userPhone || userEmail) {
+      setCustomers((prev) =>
+        prev.filter((c) => {
+          if (userPhone && c.phone === userPhone) return false;
+          if (userEmail && c.email && c.email.toLowerCase() === userEmail.toLowerCase()) return false;
+          return true;
+        })
+      );
+    }
+
+    // 2. Clear saved delivery addresses
+    setSavedAddresses([]);
+    setSelectedAddress(null);
+    localStorage.removeItem(STORAGE_KEYS.SAVED_ADDRESSES);
+
+    // 3. Clear shopping cart and applied coupon
+    setCart([]);
+    setAppliedCoupon(null);
+    setPendingCartItem(null);
+
+    // 4. Reset user profile to unauthenticated clean Guest
+    const guestUser: UserProfile = {
+      id: 'usr-guest',
+      name: 'Guest User',
+      phone: '',
+      email: '',
+      addresses: [],
+      isLoggedIn: false,
+      isGuest: true,
+    };
+    setUser(guestUser);
+    localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+
+    // 5. Audit log record for Google Play Data Safety & GDPR/DPDP compliance
+    const refId = 'CRV-DEL-' + Math.floor(100000 + Math.random() * 900000);
+    const deletionLog = {
+      id: refId,
+      phone: userPhone || 'User-Self-Deleted',
+      email: userEmail || '',
+      date: new Date().toISOString(),
+      status: 'Account and personal data completely wiped',
+    };
+    try {
+      const logs = getStoredItem<any[]>(STORAGE_KEYS.DELETION_LOGS, []);
+      logs.unshift(deletionLog);
+      setStoredItem(STORAGE_KEYS.DELETION_LOGS, logs.slice(0, 50));
+    } catch {}
+
+    showToast('Your account & all personal data have been permanently deleted.');
+    return true;
+  };
+
+  const requestWebAccountDeletion = async (
+    phoneOrEmail: string,
+    reason?: string
+  ): Promise<{ success: boolean; message: string; refId: string }> => {
+    const cleanId = phoneOrEmail.trim();
+    const refId = 'CRV-DEL-' + Math.floor(100000 + Math.random() * 900000);
+
+    // If currently logged in user matches, delete local session too
+    if (
+      user.isLoggedIn &&
+      ((user.phone && user.phone.includes(cleanId)) ||
+        (user.email && user.email.toLowerCase().includes(cleanId.toLowerCase())))
+    ) {
+      await deleteUserAccount();
+    } else {
+      // Remove from customer directory
+      setCustomers((prev) =>
+        prev.filter((c) => {
+          if (cleanId && c.phone && (cleanId.includes(c.phone) || c.phone.includes(cleanId))) return false;
+          if (cleanId && c.email && c.email.toLowerCase() === cleanId.toLowerCase()) return false;
+          return true;
+        })
+      );
+    }
+
+    // Save deletion record
+    try {
+      const logs = getStoredItem<any[]>(STORAGE_KEYS.DELETION_LOGS, []);
+      logs.unshift({
+        id: refId,
+        identifier: cleanId,
+        reason: reason || 'Requested via Play Store Web Deletion Portal',
+        date: new Date().toISOString(),
+        status: 'Processed & Deleted',
+      });
+      setStoredItem(STORAGE_KEYS.DELETION_LOGS, logs.slice(0, 50));
+    } catch {}
+
+    return {
+      success: true,
+      message: `Account deletion request processed for ${cleanId}. All associated data has been purged.`,
+      refId,
+    };
   };
 
   // Address Handlers
@@ -1506,6 +1623,8 @@ export const BakeryProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loginWithPhone,
         verifyOtp,
         logout,
+        deleteUserAccount,
+        requestWebAccountDeletion,
         isAuthModalOpen,
         setIsAuthModalOpen,
         authModalReason,

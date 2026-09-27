@@ -54,6 +54,20 @@ export const CustomerApp: React.FC = () => {
   const [subView, setSubView] = useState<'normal' | 'tracking'>('normal');
   const [promoDismissed, setPromoDismissed] = useState(false);
 
+  // Check for deep link / Play Store account deletion URL (?view=delete-account)
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (
+        params.get('view') === 'delete-account' ||
+        params.get('tab') === 'delete-account' ||
+        params.get('action') === 'delete-account'
+      ) {
+        setCustomerTab('profile');
+      }
+    }
+  }, [setCustomerTab]);
+
   const pendingOrderCount = orders.filter(
     (o) => o.status !== 'Delivered' && o.status !== 'Cancelled'
   ).length;
