@@ -21,25 +21,26 @@ import {
   Info,
   ChevronRight,
   RefreshCw,
+  Image as ImageIcon,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
 interface ApkDownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'apk' | 'pwa' | 'share' | 'domain';
+  initialTab?: 'playstore' | 'apk' | 'pwa' | 'share' | 'domain';
 }
 
 export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
   isOpen,
   onClose,
-  initialTab = 'apk',
+  initialTab = 'playstore',
 }) => {
   const [copied, setCopied] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'apk' | 'pwa' | 'share' | 'domain'>(initialTab);
-  const [customDomain, setCustomDomain] = useState('cravvycakes.in');
+  const [activeTab, setActiveTab] = useState<'playstore' | 'apk' | 'pwa' | 'share' | 'domain'>(initialTab);
+  const [customDomain, setCustomDomain] = useState('cravvycakes.com');
 
   useEffect(() => {
     if (isOpen && initialTab) {
@@ -133,6 +134,17 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
         {/* Tab Navigation */}
         <div className="flex border-b border-[#E8DCC4] dark:border-[#3D251D] bg-[#F2E8DC] dark:bg-[#281A15] p-1.5 gap-1 text-xs font-semibold overflow-x-auto">
           <button
+            onClick={() => setActiveTab('playstore')}
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
+              activeTab === 'playstore'
+                ? 'bg-[#8B2F3C] text-white shadow-sm font-bold'
+                : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-[#C9A227] shrink-0" />
+            <span className="truncate">⭐ Play Store Kit</span>
+          </button>
+          <button
             onClick={() => setActiveTab('apk')}
             className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
               activeTab === 'apk'
@@ -141,29 +153,7 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
             }`}
           >
             <Download className="w-4 h-4 shrink-0" />
-            <span className="truncate">1. APK Export</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('pwa')}
-            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
-              activeTab === 'pwa'
-                ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
-                : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
-            }`}
-          >
-            <Smartphone className="w-4 h-4 shrink-0" />
-            <span className="truncate">2. Install App</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('share')}
-            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
-              activeTab === 'share'
-                ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
-                : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
-            }`}
-          >
-            <Share2 className="w-4 h-4 shrink-0" />
-            <span className="truncate">3. Share</span>
+            <span className="truncate">APK / AAB</span>
           </button>
           <button
             onClick={() => setActiveTab('domain')}
@@ -174,12 +164,309 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
             }`}
           >
             <Globe className="w-4 h-4 text-[#C9A227] shrink-0" />
-            <span className="truncate font-bold">4. Domain & Publish</span>
+            <span className="truncate font-bold">Domain & Publish</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('pwa')}
+            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
+              activeTab === 'pwa'
+                ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
+                : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
+            }`}
+          >
+            <Smartphone className="w-4 h-4 shrink-0" />
+            <span className="truncate">Install App</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('share')}
+            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
+              activeTab === 'share'
+                ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
+                : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
+            }`}
+          >
+            <Share2 className="w-4 h-4 shrink-0" />
+            <span className="truncate">Share</span>
           </button>
         </div>
 
         {/* Modal Body */}
         <div className="p-5 md:p-6 overflow-y-auto space-y-4">
+          {/* TAB 0: PLAY STORE KIT (SCREENSHOTS, LOGO, BANNER, AAB) */}
+          {activeTab === 'playstore' && (
+            <div className="space-y-5">
+              <div className="p-4 rounded-2xl bg-[#C9A227]/15 border border-[#C9A227]/40 flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-[#C9A227] shrink-0 mt-0.5" />
+                <div className="text-xs text-[#523A30] dark:text-[#E6D7CC]">
+                  <p className="font-bold text-sm text-[#3B2118] dark:text-white mb-1">
+                    Google Play Store Asset Kit (Screenshots + App Logo + Banner)
+                  </p>
+                  Play Store Console me upload karne ke liye saare required assets ready hain. Niche har image ke samne <strong>Download</strong> button par click karke save karein.
+                </div>
+              </div>
+
+              {/* SECTION 1: APP LOGO (512x512) */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-[#8B2F3C] text-white flex items-center justify-center text-xs font-bold">1</span>
+                    <h4 className="font-bold text-sm text-[#3B2118] dark:text-white">
+                      Official Brand App Logo (Google Play Store 512x512)
+                    </h4>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    Official Brand
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <img
+                    src="/cravvy-icon.png"
+                    alt="Cravvy Cakes Official Brand Logo"
+                    className="w-24 h-24 rounded-2xl shadow-md border-2 border-[#C9A227] object-cover"
+                  />
+                  <div className="flex-1 text-center sm:text-left space-y-1.5">
+                    <p className="text-xs text-[#6E4F42] dark:text-[#D1BEB0]">
+                      Aapka official <strong>Cravvy Cakes Royal Crown & Gold Crest Logo</strong> (Google Play Store 512x512 specification ke liye ready).
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                      <a
+                        href="/cravvy-icon.png"
+                        download="cravvy-cakes-official-playstore-logo.png"
+                        className="px-4 py-2 rounded-xl bg-[#8B2F3C] text-white text-xs font-bold hover:bg-[#661D27] transition flex items-center gap-1.5 shadow-sm"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Official App Logo</span>
+                      </a>
+                      <a
+                        href="/cravvy-icon.png"
+                        download="cravvy-icon.png"
+                        className="px-3 py-2 rounded-xl border border-[#E8DCC4] dark:border-[#3D251D] text-xs font-medium text-[#3B2118] dark:text-[#FAF4EE] hover:bg-[#FAF4EE] dark:hover:bg-[#3B2118] transition flex items-center gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>PNG Version</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: FEATURE GRAPHIC (1024x500) */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-[#8B2F3C] text-white flex items-center justify-center text-xs font-bold">2</span>
+                    <h4 className="font-bold text-sm text-[#3B2118] dark:text-white">
+                      Feature Graphic Banner (1024 x 500)
+                    </h4>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    Mandatory
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <img
+                    src="/playstore/feature-graphic-1024x500.jpg"
+                    alt="Cravvy Cakes Play Store Feature Graphic"
+                    className="w-full h-44 rounded-xl shadow-md border border-[#E8DCC4] dark:border-[#3D251D] object-cover"
+                  />
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <p className="text-xs text-[#6E4F42] dark:text-[#D1BEB0]">
+                      Play Store listing ke top banner par display hota hai (1024x500).
+                    </p>
+                    <a
+                      href="/playstore/feature-graphic-1024x500.jpg"
+                      download="cravvy-cakes-feature-graphic-1024x500.jpg"
+                      className="px-4 py-2 rounded-xl bg-[#8B2F3C] text-white text-xs font-bold hover:bg-[#661D27] transition flex items-center gap-1.5 shadow-sm shrink-0"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Banner</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: APP SCREENSHOTS (9:16 VERTICAL) */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-[#8B2F3C] text-white flex items-center justify-center text-xs font-bold">3</span>
+                    <h4 className="font-bold text-sm text-[#3B2118] dark:text-white">
+                      App Screenshots (Phone Mockups 9:16)
+                    </h4>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                    Min 2 Required
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Screenshot 1 */}
+                  <div className="p-3 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4] dark:border-[#3D251D] flex flex-col items-center">
+                    <img
+                      src="/playstore/screenshot-1-actual.jpg"
+                      alt="Cravvy Cakes Home & Header Screenshot"
+                      className="w-full max-w-[210px] h-72 rounded-xl shadow-md border object-cover mb-2"
+                    />
+                    <p className="text-xs font-semibold text-[#3B2118] dark:text-white text-center">
+                      1. Home, Logo & Eggless Banner
+                    </p>
+                    <a
+                      href="/playstore/screenshot-1-actual.jpg"
+                      download="cravvy-screenshot-1-home.jpg"
+                      className="mt-2 w-full py-1.5 rounded-lg bg-[#3B2118] text-white text-xs font-medium hover:bg-[#523A30] transition flex items-center justify-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Screenshot 1</span>
+                    </a>
+                  </div>
+
+                  {/* Screenshot 2 */}
+                  <div className="p-3 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4] dark:border-[#3D251D] flex flex-col items-center">
+                    <img
+                      src="/playstore/screenshot-2-actual.jpg"
+                      alt="Cravvy Cakes Cake Menu Screenshot"
+                      className="w-full max-w-[210px] h-72 rounded-xl shadow-md border object-cover mb-2"
+                    />
+                    <p className="text-xs font-semibold text-[#3B2118] dark:text-white text-center">
+                      2. Cake Catalog, Weight & Prices
+                    </p>
+                    <a
+                      href="/playstore/screenshot-2-actual.jpg"
+                      download="cravvy-screenshot-2-catalog.jpg"
+                      className="mt-2 w-full py-1.5 rounded-lg bg-[#3B2118] text-white text-xs font-medium hover:bg-[#523A30] transition flex items-center justify-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Screenshot 2</span>
+                    </a>
+                  </div>
+
+                  {/* Screenshot 3 */}
+                  <div className="p-3 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4] dark:border-[#3D251D] flex flex-col items-center">
+                    <img
+                      src="/playstore/screenshot-3-actual.jpg"
+                      alt="Cravvy Cakes Custom Cake Builder Screenshot"
+                      className="w-full max-w-[210px] h-72 rounded-xl shadow-md border object-cover mb-2"
+                    />
+                    <p className="text-xs font-semibold text-[#3B2118] dark:text-white text-center">
+                      3. Custom Cake Design Studio
+                    </p>
+                    <a
+                      href="/playstore/screenshot-3-actual.jpg"
+                      download="cravvy-screenshot-3-custom-cake.jpg"
+                      className="mt-2 w-full py-1.5 rounded-lg bg-[#3B2118] text-white text-xs font-medium hover:bg-[#523A30] transition flex items-center justify-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Screenshot 3</span>
+                    </a>
+                  </div>
+
+                  {/* Screenshot 4 */}
+                  <div className="p-3 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4] dark:border-[#3D251D] flex flex-col items-center">
+                    <img
+                      src="/playstore/screenshot-4-actual.jpg"
+                      alt="Cravvy Cakes Checkout & Tracking Screenshot"
+                      className="w-full max-w-[210px] h-72 rounded-xl shadow-md border object-cover mb-2"
+                    />
+                    <p className="text-xs font-semibold text-[#3B2118] dark:text-white text-center">
+                      4. Checkout & Order Tracking
+                    </p>
+                    <a
+                      href="/playstore/screenshot-4-actual.jpg"
+                      download="cravvy-screenshot-4-checkout.jpg"
+                      className="mt-2 w-full py-1.5 rounded-lg bg-[#3B2118] text-white text-xs font-medium hover:bg-[#523A30] transition flex items-center justify-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Screenshot 4</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 4: PLAY STORE .AAB BUNDLE GENERATOR */}
+              <div className="bg-gradient-to-r from-[#8B2F3C]/10 via-[#C9A227]/15 to-[#8B2F3C]/10 p-5 rounded-2xl border-2 border-[#8B2F3C]/30 shadow-sm space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-lg bg-[#C9A227] text-[#3B2118] flex items-center justify-center text-xs font-bold">4</span>
+                    <h4 className="font-bold text-sm text-[#3B2118] dark:text-white">
+                      Google Play .AAB Bundle (1-Click Generator Guide)
+                    </h4>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#8B2F3C] text-white">
+                    2-Minute Setup
+                  </span>
+                </div>
+
+                <p className="text-xs text-[#523A30] dark:text-[#E6D7CC]">
+                  Google Play Store par upload karne ke liye Microsoft ke official cloud builder (PWABuilder) se signed <code>.aab</code> file 2 minute me generate hoti hai:
+                </p>
+
+                {/* Pre-filled parameters to copy */}
+                <div className="p-3 bg-white dark:bg-[#201511] rounded-xl border border-[#E8DCC4] dark:border-[#3D251D] text-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[#8C6D60] dark:text-[#B0988A] text-[11px] block">Package ID:</span>
+                      <strong className="font-mono text-[#3B2118] dark:text-white">com.cravvycakes.app</strong>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard('com.cravvycakes.app', 'pkg_id')}
+                      className="px-2 py-1 rounded bg-[#F2E8DC] dark:bg-[#3B2118] text-[10px] font-bold text-[#8B2F3C] dark:text-[#C9A227] flex items-center gap-1"
+                    >
+                      {copiedKey === 'pkg_id' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedKey === 'pkg_id' ? 'Copied!' : 'Copy'}</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between border-t border-[#E8DCC4]/50 dark:border-[#3D251D] pt-1.5">
+                    <div>
+                      <span className="text-[#8C6D60] dark:text-[#B0988A] text-[11px] block">App Name:</span>
+                      <strong className="text-[#3B2118] dark:text-white">Cravvy Cakes</strong>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard('Cravvy Cakes', 'app_name')}
+                      className="px-2 py-1 rounded bg-[#F2E8DC] dark:bg-[#3B2118] text-[10px] font-bold text-[#8B2F3C] dark:text-[#C9A227] flex items-center gap-1"
+                    >
+                      {copiedKey === 'app_name' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedKey === 'app_name' ? 'Copied!' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 Steps */}
+                <div className="space-y-1.5 text-xs text-[#523A30] dark:text-[#E6D7CC]">
+                  <p><strong>Step 1:</strong> Niche diye gaye <strong>"Launch PWABuilder"</strong> button par click karein.</p>
+                  <p><strong>Step 2:</strong> Page khulne ke baad <strong>"Package for Store"</strong> button dabayein aur <strong>Android</strong> select karein.</p>
+                  <p><strong>Step 3:</strong> <strong>"Generate Package"</strong> dabayein (Signing Key auto-generate ho jayegi).</p>
+                  <p><strong>Step 4:</strong> Download hui <code>.zip</code> file ko unzip karein — uske andar aapki signed <code>app-release-bundle.aab</code> file milegi!</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <a
+                    href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent('https://' + cleanDomain)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#8B2F3C] to-[#661D27] hover:from-[#732531] hover:to-[#52161f] text-white text-xs font-bold shadow-md transition"
+                  >
+                    <Sparkles className="w-4 h-4 text-[#C9A227]" />
+                    <span>Generate .AAB for {cleanDomain}</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+
+                  <a
+                    href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(appUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#8B2F3C] text-[#8B2F3C] dark:text-[#C9A227] hover:bg-[#8B2F3C]/10 text-xs font-semibold transition"
+                  >
+                    <span>Instant URL se Banayein</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: DOWNLOAD APK */}
           {activeTab === 'apk' && (
             <div className="space-y-4">
