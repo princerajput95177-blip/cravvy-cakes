@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cravvycakes.app",
+      "sha256_cert_fingerprints": [
+        "DEFAULT_REPLACE_WITH_PWABUILDER_OR_GOOGLE_PLAY_SHA256"
+      ]
+    }
+  }
+]

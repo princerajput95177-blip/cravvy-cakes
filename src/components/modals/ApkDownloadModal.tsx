@@ -11,26 +11,57 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  Globe,
+  Server,
+  Cloud,
+  Layers,
+  ArrowUpRight,
+  Check,
+  Zap,
+  Info,
+  ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 
 interface ApkDownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: 'apk' | 'pwa' | 'share' | 'domain';
 }
 
 export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
   isOpen,
   onClose,
+  initialTab = 'apk',
 }) => {
   const [copied, setCopied] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'apk' | 'pwa' | 'share'>('apk');
+  const [activeTab, setActiveTab] = useState<'apk' | 'pwa' | 'share' | 'domain'>(initialTab);
+  const [customDomain, setCustomDomain] = useState('cravvycakes.in');
+
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   const appUrl =
     typeof window !== 'undefined'
       ? window.location.origin
       : 'https://ais-pre-c6plbw2lip7zulw67q4pni-67795857064.asia-southeast1.run.app';
+
+  const cleanDomain = customDomain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim() || 'cravvycakes.in';
+  const customAppUrl = `https://${cleanDomain}`;
+  const customDeleteUrl = `https://${cleanDomain}/?view=delete-account`;
+  const customPrivacyUrl = `https://${cleanDomain}/?view=privacy`;
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   useEffect(() => {
     if (isOpen && appUrl) {
@@ -100,39 +131,50 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-[#E8DCC4] dark:border-[#3D251D] bg-[#F2E8DC] dark:bg-[#281A15] p-1.5 gap-1 text-xs md:text-sm font-semibold">
+        <div className="flex border-b border-[#E8DCC4] dark:border-[#3D251D] bg-[#F2E8DC] dark:bg-[#281A15] p-1.5 gap-1 text-xs font-semibold overflow-x-auto">
           <button
             onClick={() => setActiveTab('apk')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl transition ${
+            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
               activeTab === 'apk'
                 ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
                 : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
             }`}
           >
-            <Download className="w-4 h-4" />
-            <span>1. Download APK</span>
+            <Download className="w-4 h-4 shrink-0" />
+            <span className="truncate">1. APK Export</span>
           </button>
           <button
             onClick={() => setActiveTab('pwa')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl transition ${
+            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
               activeTab === 'pwa'
                 ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
                 : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
             }`}
           >
-            <Smartphone className="w-4 h-4" />
-            <span>2. Install (No APK)</span>
+            <Smartphone className="w-4 h-4 shrink-0" />
+            <span className="truncate">2. Install App</span>
           </button>
           <button
             onClick={() => setActiveTab('share')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl transition ${
+            className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
               activeTab === 'share'
                 ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
                 : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
             }`}
           >
-            <Share2 className="w-4 h-4" />
-            <span>3. WhatsApp Share</span>
+            <Share2 className="w-4 h-4 shrink-0" />
+            <span className="truncate">3. Share</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('domain')}
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl transition ${
+              activeTab === 'domain'
+                ? 'bg-white dark:bg-[#3B2118] text-[#8B2F3C] dark:text-[#C9A227] shadow-sm'
+                : 'text-[#6E4F42] dark:text-[#D1BEB0] hover:text-[#3B2118]'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-[#C9A227] shrink-0" />
+            <span className="truncate font-bold">4. Domain & Publish</span>
           </button>
         </div>
 
@@ -479,6 +521,260 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 4: DOMAIN & PLAY STORE PUBLISHING */}
+          {activeTab === 'domain' && (
+            <div className="space-y-4">
+              {/* Core Concept Banner */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#8B2F3C]/10 via-[#C9A227]/15 to-emerald-500/10 border border-[#C9A227]/40 flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-[#C9A227] shrink-0 mt-0.5" />
+                <div className="text-xs text-[#523A30] dark:text-[#E6D7CC]">
+                  <p className="font-bold text-sm text-[#3B2118] dark:text-white mb-1">
+                    Live Auto-Sync: Bina Play Store Update Ke Automatic Changes!
+                  </p>
+                  Jab aap app ko apne custom domain se connect karte hain aur PWABuilder se Play Store par publish karte hain, toh Android aur iOS app seedha aapke domain se live data uthati hain.
+                  <strong> Yaha koi bhi cake, price ya design badalenge toh Play Store app me turant bina new version dale live change ho jayega!</strong>
+                </div>
+              </div>
+
+              {/* Custom Domain Interactive Configurator */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B2F3C] dark:text-[#C9A227] flex items-center gap-1.5">
+                    <Globe className="w-4 h-4" />
+                    <span>Apna Custom Domain Yahan Dalein:</span>
+                  </h4>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                    Live URL Generator
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-2 bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4] dark:border-[#3D251D] rounded-xl text-xs text-[#8C6D60] dark:text-[#B0988A] font-mono shrink-0">
+                    https://
+                  </span>
+                  <input
+                    type="text"
+                    value={customDomain}
+                    onChange={(e) => setCustomDomain(e.target.value)}
+                    placeholder="cravvycakes.in ya cravvycakes.com"
+                    className="flex-1 bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4] dark:border-[#3D251D] rounded-xl px-3 py-2 text-xs text-[#3B2118] dark:text-white font-mono focus:outline-none focus:border-[#8B2F3C]"
+                  />
+                </div>
+                <p className="text-[11px] text-[#8C6D60] dark:text-[#B0988A]">
+                  Agar aapne GoDaddy, Hostinger ya Namecheap se domain khareeda hai toh yahan enter karein. Neeche ke saare links aur DNS settings auto-update ho jayenge!
+                </p>
+              </div>
+
+              {/* Step 1: DNS Records to Add in GoDaddy / Hostinger */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#3B2118] dark:text-white flex items-center gap-1.5">
+                    <Server className="w-4 h-4 text-[#C9A227]" />
+                    <span>Step 1: Domain DNS Records (GoDaddy / Hostinger me add karein)</span>
+                  </h4>
+                </div>
+
+                <p className="text-[11px] text-[#6E4F42] dark:text-[#D1BEB0]">
+                  Apne Domain Provider (GoDaddy, Hostinger, Namecheap) ke <strong>DNS Management</strong> me jakar yeh 2 records add karein:
+                </p>
+
+                <div className="space-y-2">
+                  {/* Record A */}
+                  <div className="p-3 bg-[#FAF4EE] dark:bg-[#201511] rounded-xl border border-[#E8DCC4] dark:border-[#3D251D] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="text-xs space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 font-mono text-[10px] font-bold rounded">
+                          Type: A
+                        </span>
+                        <span className="font-semibold text-[#3B2118] dark:text-white">
+                          Host / Name: <code className="font-mono text-[#8B2F3C]">@</code>
+                        </span>
+                      </div>
+                      <div className="text-[11px] font-mono text-[#6E4F42] dark:text-[#D1BEB0]">
+                        Value: <strong>76.76.21.21</strong> (Vercel Global Anycast IP)
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard('76.76.21.21', 'dns-a')}
+                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#3B2118] border border-[#E8DCC4] dark:border-[#3D251D] text-xs font-bold text-[#3B2118] dark:text-white hover:bg-[#FAF4EE] flex items-center justify-center gap-1 shrink-0"
+                    >
+                      {copiedKey === 'dns-a' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-[#C9A227]" />}
+                      <span>{copiedKey === 'dns-a' ? 'Copied!' : 'Copy IP'}</span>
+                    </button>
+                  </div>
+
+                  {/* Record CNAME */}
+                  <div className="p-3 bg-[#FAF4EE] dark:bg-[#201511] rounded-xl border border-[#E8DCC4] dark:border-[#3D251D] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="text-xs space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200 font-mono text-[10px] font-bold rounded">
+                          Type: CNAME
+                        </span>
+                        <span className="font-semibold text-[#3B2118] dark:text-white">
+                          Host / Name: <code className="font-mono text-[#8B2F3C]">www</code>
+                        </span>
+                      </div>
+                      <div className="text-[11px] font-mono text-[#6E4F42] dark:text-[#D1BEB0]">
+                        Value: <strong>cname.vercel-dns.com</strong>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard('cname.vercel-dns.com', 'dns-cname')}
+                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-[#3B2118] border border-[#E8DCC4] dark:border-[#3D251D] text-xs font-bold text-[#3B2118] dark:text-white hover:bg-[#FAF4EE] flex items-center justify-center gap-1 shrink-0"
+                    >
+                      {copiedKey === 'dns-cname' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-[#C9A227]" />}
+                      <span>{copiedKey === 'dns-cname' ? 'Copied!' : 'Copy Value'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-[#8C6D60] dark:text-[#B0988A] bg-[#FAF4EE] dark:bg-[#201511] p-2.5 rounded-xl border border-[#E8DCC4]/50 dark:border-[#3D251D]/50 space-y-1">
+                  <p className="font-semibold text-[#3B2118] dark:text-[#FAF4EE]">Hosting Kaise Karein (100% Free):</p>
+                  <p>1. Is project ko GitHub par push karein.</p>
+                  <p>2. Vercel.com ya Netlify.com par Free account banakar GitHub repo select karein.</p>
+                  <p>3. Settings &gt; Domains me jakar <strong>{cleanDomain}</strong> add karein. SSL Certificate (HTTPS) 2 minute me automatically lag jata hai!</p>
+                </div>
+              </div>
+
+              {/* Step 2: Google Play Console Required URLs */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border-2 border-[#8B2F3C]/20 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#8B2F3C] dark:text-[#C9A227] flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Step 2: Play Store Mandatory URLs (Copy-Paste Ready)</span>
+                  </h4>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    Compliant
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-[#6E4F42] dark:text-[#D1BEB0]">
+                  Google Play Console me App submission ke dauran yeh do links maangta hai:
+                </p>
+
+                <div className="space-y-2">
+                  {/* Account Deletion URL */}
+                  <div className="p-2.5 bg-[#FAF4EE] dark:bg-[#201511] rounded-xl border border-[#E8DCC4] dark:border-[#3D251D] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300">
+                        1. Account Deletion URL (Google Play Policy Required):
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(customDeleteUrl, 'del-url')}
+                        className="px-2 py-1 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 text-[10px] font-bold hover:bg-rose-200 flex items-center gap-1"
+                      >
+                        {copiedKey === 'del-url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedKey === 'del-url' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <div className="font-mono text-[11px] text-[#523A30] dark:text-[#E6D7CC] select-all break-all">
+                      {customDeleteUrl}
+                    </div>
+                  </div>
+
+                  {/* Privacy Policy URL */}
+                  <div className="p-2.5 bg-[#FAF4EE] dark:bg-[#201511] rounded-xl border border-[#E8DCC4] dark:border-[#3D251D] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300">
+                        2. Privacy Policy URL:
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(customPrivacyUrl, 'privacy-url')}
+                        className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200 text-[10px] font-bold hover:bg-blue-200 flex items-center gap-1"
+                      >
+                        {copiedKey === 'privacy-url' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedKey === 'privacy-url' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <div className="font-mono text-[11px] text-[#523A30] dark:text-[#E6D7CC] select-all break-all">
+                      {customPrivacyUrl}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Google Play Store Publishing Walkthrough */}
+              <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] shadow-sm space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#3B2118] dark:text-white flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4 text-[#8B2F3C]" />
+                  <span>Step 3: Play Store Pe App Kaise Dalen (Final 5 Steps)</span>
+                </h4>
+
+                <div className="space-y-2 text-xs text-[#523A30] dark:text-[#E6D7CC]">
+                  <div className="p-2.5 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4]/50 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                      1
+                    </span>
+                    <div>
+                      <strong>Google Play Console Account</strong> banayein (play.google.com/console) — $25 one-time registration fee hoti hai jo lifetime valid rehti hai.
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4]/50 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                      2
+                    </span>
+                    <div>
+                      <strong>PWABuilder par .aab File Generate Karein:</strong>{' '}
+                      <a
+                        href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(customAppUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#8B2F3C] dark:text-[#C9A227] underline font-bold inline-flex items-center gap-1"
+                      >
+                        Open PWABuilder with Domain <ExternalLink className="w-3 h-3" />
+                      </a>
+                      <br />
+                      Wahan <strong>"Package for Store &gt; Android"</strong> click karein aur signed <code>.aab</code> file download karein.
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4]/50 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                      3
+                    </span>
+                    <div>
+                      <strong>Store Listing Bharein:</strong>
+                      <ul className="list-disc list-inside mt-1 text-[11px] text-[#6E4F42] dark:text-[#D1BEB0] space-y-0.5">
+                        <li>App Title: <strong>Cravvy Cakes - 100% Pure Veg Bakery</strong></li>
+                        <li>Icon: Tab 1 se 512x512 Icon PNG download karke upload karein</li>
+                        <li>Feature Graphic: 1024x500 banner upload karein</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4]/50 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-[#8B2F3C] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                      4
+                    </span>
+                    <div>
+                      <strong>Data Safety & Deletion Form:</strong> Upar copy kiya gaya <code>{customDeleteUrl}</code> paste karein.
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#FAF4EE] dark:bg-[#201511] border border-[#E8DCC4]/50 flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                      5
+                    </span>
+                    <div>
+                      <strong>Production Release:</strong> Apni <code>.aab</code> file upload karein aur <strong>"Send for Review"</strong> button dabayein! Google 24-48 hours mein app live kar dega.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Direct PWABuilder Action Button */}
+              <a
+                href={`https://www.pwabuilder.com/reportcard?site=${encodeURIComponent(customAppUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#8B2F3C] to-[#661D27] hover:from-[#732531] hover:to-[#52161f] text-white text-xs font-bold shadow-md transition"
+              >
+                <span>Launch PWABuilder for {cleanDomain}</span>
+                <ExternalLink className="w-4 h-4" />
+              </a>
             </div>
           )}
         </div>

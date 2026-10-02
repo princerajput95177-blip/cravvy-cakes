@@ -54,7 +54,9 @@ import {
   Cloud,
   Server,
   RefreshCw,
+  Globe,
 } from 'lucide-react';
+import { ApkDownloadModal } from '../modals/ApkDownloadModal';
 import {
   getBakeryWhatsAppUrl,
   BAKERY_WHATSAPP_NUMBER,
@@ -115,6 +117,8 @@ export const AdminDashboard: React.FC = () => {
   const [isTestingSupabase, setIsTestingSupabase] = useState(false);
   const [isSyncingSupabase, setIsSyncingSupabase] = useState(false);
   const [showSqlModal, setShowSqlModal] = useState(false);
+  const [isApkModalOpen, setIsApkModalOpen] = useState(false);
+  const [apkInitialTab, setApkInitialTab] = useState<'apk' | 'pwa' | 'share' | 'domain'>('domain');
   const [supabaseTestResult, setSupabaseTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const initialSupabaseConfig = getSupabaseConfig();
   const [supabaseUrlInput, setSupabaseUrlInput] = useState(initialSupabaseConfig.url);
@@ -636,6 +640,13 @@ export const AdminDashboard: React.FC = () => {
                   isHighlight: true,
                 },
                 { id: 'notifications', label: 'Push Broadcast (FCM)', icon: Bell },
+                {
+                  id: 'domain-guide',
+                  label: '13. 🌐 Domain & Play Store',
+                  icon: Globe,
+                  badge: 'Publish',
+                  isHighlight: true,
+                },
               ];
             })().map((item) => {
               const Icon = item.icon;
@@ -643,7 +654,14 @@ export const AdminDashboard: React.FC = () => {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveAdminTab(item.id as any)}
+                  onClick={() => {
+                    if (item.id === 'domain-guide') {
+                      setApkInitialTab('domain');
+                      setIsApkModalOpen(true);
+                    } else {
+                      setActiveAdminTab(item.id as any);
+                    }
+                  }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition ${
                     isActive
                       ? 'bg-[#8B2F3C] text-white font-bold shadow-md shadow-[#8B2F3C]/40 border border-[#8B2F3C]/30'
@@ -708,6 +726,17 @@ export const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setApkInitialTab('domain');
+                setIsApkModalOpen(true);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black shadow-md flex items-center gap-1.5 transition active:scale-95 border border-emerald-400/40 cursor-pointer"
+              title="Connect Custom Domain & Google Play Store Publishing"
+            >
+              <Globe className="w-4 h-4 text-[#C9A227]" />
+              <span>🌐 Domain & Play Store</span>
+            </button>
             <button
               onClick={() => {
                 setViewMode('customer');
@@ -4978,6 +5007,13 @@ CREATE POLICY "Allow anon all on custom_cake_requests" ON custom_cake_requests F
           </div>
         </div>
       )}
+
+      {/* APK, Custom Domain & Play Store Publishing Modal */}
+      <ApkDownloadModal
+        isOpen={isApkModalOpen}
+        onClose={() => setIsApkModalOpen(false)}
+        initialTab={apkInitialTab}
+      />
     </div>
   );
 };
