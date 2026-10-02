@@ -567,7 +567,51 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
                   Step 2: Kisi Bhi Website Par Click Karke Direct APK Banayein:
                 </h4>
 
-                {/* Option A: AppsGeyser (Instant & Most Popular) */}
+                {/* Option A: Median.co (GoNative - Top Recommended for Play Store AAB) */}
+                <div className="bg-gradient-to-br from-indigo-50/50 to-white dark:from-[#2A1C28] dark:to-[#1F1410] p-4 sm:p-5 rounded-2xl border-2 border-indigo-500/30 hover:border-indigo-500 transition shadow-md space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-black text-base flex items-center justify-center shrink-0 shadow-md">
+                        M
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-extrabold text-base text-[#3B2118] dark:text-white">
+                            Median.co (Play Store AAB & APK)
+                          </h5>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-sm">
+                            ⭐ Recommended for AAB
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#6E4F42] dark:text-[#D1BEB0]">
+                          Google Play Store ke liye direct <strong>.AAB bundle</strong> aur test APK generate karein.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-[#8C6D60] dark:text-[#B0988A] bg-indigo-50/60 dark:bg-black/30 p-3 rounded-xl border border-indigo-200/50 dark:border-indigo-900/40 space-y-1.5">
+                    <p className="font-bold text-[#3B2118] dark:text-white">Bas 3 Simple Steps:</p>
+                    <p>1. Neeche <strong>"Open Median.co"</strong> button par click karein.</p>
+                    <p>2. Website URL me paste karein: <strong className="text-indigo-600 dark:text-indigo-400 font-mono">https://cravvycakes.com</strong></p>
+                    <p>3. App Name me likhein: <strong>Cravvy Cakes</strong> aur <strong>"Build App"</strong> dabayein!</p>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold">➔ 2 minute me direct Play Store Ready (.AAB) file mil jayegi!</p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <a
+                      href="https://median.co/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow transition transform hover:scale-[1.01]"
+                    >
+                      <span>Open Median.co & Create .AAB</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-white/80" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Option B: AppsGeyser (Instant & Most Popular for APK) */}
                 <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] hover:border-[#8B2F3C] transition shadow-sm space-y-2.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
@@ -577,66 +621,26 @@ export const ApkDownloadModal: React.FC<ApkDownloadModalProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <h5 className="font-bold text-sm text-[#3B2118] dark:text-white">
-                            AppsGeyser (Sabse Fast & Free)
+                            AppsGeyser (Fast Direct APK)
                           </h5>
                           <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                            ⭐ Recommended
+                            Instant APK
                           </span>
                         </div>
                         <p className="text-[11px] text-[#6E4F42] dark:text-[#D1BEB0]">
-                          1-Minute me bina kisi wait ke direct Android .apk file download hoti hai.
+                          1-Minute me direct Android .apk file download hoti hai test karne ke liye.
                         </p>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="text-[11px] text-[#8C6D60] dark:text-[#B0988A] bg-[#FAF4EE] dark:bg-[#201511] p-2.5 rounded-xl border border-[#E8DCC4]/50 dark:border-[#3D251D]/50 space-y-1">
-                    <p>1. Neeche button dabakar website kholein.</p>
-                    <p>2. <strong>"Website URL"</strong> mein upar copy kiya gaya link paste karein.</p>
-                    <p>3. App Name mein <strong>"Cravvy Cakes"</strong> likhein aur <strong>Download APK</strong> dabayein!</p>
                   </div>
 
                   <a
                     href="https://appsgeyser.com/create-url-app/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow transition"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow transition"
                   >
                     <span>Open AppsGeyser & Create APK</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-white/80" />
-                  </a>
-                </div>
-
-                {/* Option B: Median.co (GoNative) */}
-                <div className="bg-white dark:bg-[#2A1C17] p-4 rounded-2xl border border-[#E8DCC4] dark:border-[#3D251D] hover:border-[#8B2F3C] transition shadow-sm space-y-2.5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-sm">
-                        M
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h5 className="font-bold text-sm text-[#3B2118] dark:text-white">
-                            Median.co (Professional APK)
-                          </h5>
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800">
-                            High Quality
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[#6E4F42] dark:text-[#D1BEB0]">
-                          Clean interface, official Android app package builder.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <a
-                    href="https://median.co/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow transition"
-                  >
-                    <span>Open Median.co</span>
                     <ExternalLink className="w-3.5 h-3.5 text-white/80" />
                   </a>
                 </div>
